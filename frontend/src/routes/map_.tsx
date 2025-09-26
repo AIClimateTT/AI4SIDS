@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, ClientOnly } from '@tanstack/react-router'
 import { useRef, useState, lazy, Suspense } from "react";
 
 import type { MapComponentRef } from "@/components/map";
@@ -7,7 +7,7 @@ import type { LocationSummary } from "@/lib/api/types";
 import ChatInterface from "@/components/chat-interface";
 import EnhancedSidebar from "@/components/enhanced-sidebar";
 import { LocationDetailSheet } from "@/components/location-detail-sheet";
-import { ClientOnly } from "@/components/ClientOnly";
+// import { ClientOnly } from "@/components/ClientOnly";
 
 // Dynamically import the map component to avoid SSR issues with Leaflet
 const MapComponent = lazy(() => import("@/components/map"));
