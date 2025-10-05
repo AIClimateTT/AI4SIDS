@@ -451,6 +451,76 @@ async def get_location_timeline(location: str, minutes: int = 5):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting timeline: {str(e)}")
 
+@app.get("/api/history/{location}")
+async def get_location_history(location: str, points: int = 20):
+    """
+    Get historical data points for sparkline visualization
+    Returns simplified data optimized for sparkline charts
+    Default: last 20 points (last 5 minutes at 15s intervals)
+    """
+    try:
+        # Limit points to prevent overload
+        points = min(points, 100)  # Max 100 points (25 minutes)
+        
+        location_river_data = [d for d in river_data if d["location"] == location]
+        if not location_river_data:
+            raise HTTPException(status_code=404, detail=f"No data found for {location}")
+        
+        history = []
+        for i in range(points):
+            data_idx = (current_data_index - i) % len(location_river_data)
+            point = location_river_data[data_idx]
+            
+            history.append({
+                "timestamp": (get_current_timestamp() - timedelta(seconds=i * data_interval_seconds)).isoformat(),
+                "value": point["river_level_m"],
+                "change": point["change_in_level_m"],
+            })
+        
+        # Reverse to get chronological order (oldest to newest)
+        history = list(reversed(history))
+        
+        # Calculate trend indicators
+        if len(history) >= 2:
+            recent_avg = sum(p["value"] for p in history[-5:]) / min(5, len(history))
+            older_avg = sum(p["value"] for p in history[:5]) / min(5, len(history))
+            overall_trend = "rising" if recent_avg > older_avg else "falling" if recent_avg < older_avg else "stable"
+            trend_percentage = ((recent_avg - older_avg) / older_avg * 100) if older_avg > 0 else 0
+        else:
+            overall_trend = "stable"
+            trend_percentage = 0
+        
+        current_level = history[-1]["value"] if history else 0
+        current_risk = calculate_flood_risk(current_level)
+        
+        return {
+            "location": location,
+            "current": {
+                "value": current_level,
+                "risk": current_risk,
+                "change": history[-1]["change"] if history else 0,
+                "timestamp": history[-1]["timestamp"] if history else get_current_timestamp().isoformat()
+            },
+            "history": history,
+            "trend": {
+                "direction": overall_trend,
+                "percentage": round(trend_percentage, 2),
+                "color": "red" if overall_trend == "rising" and current_risk in ["HIGH", "CRITICAL"] else 
+                        "orange" if overall_trend == "rising" else
+                        "green" if overall_trend == "falling" else
+                        "blue"
+            },
+            "stats": {
+                "max": max(p["value"] for p in history),
+                "min": min(p["value"] for p in history),
+                "avg": sum(p["value"] for p in history) / len(history),
+                "points": len(history)
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting history: {str(e)}")
+
 @app.get("/api/locations")
 async def get_available_locations():
     """Get list of available locations with current status"""

@@ -112,6 +112,34 @@ export interface LocationTimeline {
     summary: TimelineSummary;
 }
 
+export interface HistoryPoint {
+    timestamp: string;
+    value: number;
+    change: number;
+}
+
+export interface LocationHistory {
+    location: string;
+    current: {
+        value: number;
+        risk: 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+        change: number;
+        timestamp: string;
+    };
+    history: HistoryPoint[];
+    trend: {
+        direction: 'rising' | 'falling' | 'stable';
+        percentage: number;
+        color: 'red' | 'orange' | 'green' | 'blue';
+    };
+    stats: {
+        max: number;
+        min: number;
+        avg: number;
+        points: number;
+    };
+}
+
 export interface ApiStatus {
     message: string;
     version: string;
