@@ -10,9 +10,9 @@ import os
 from contextlib import asynccontextmanager
 from enum import Enum
 import math
-from data_simulator import generate_realtime_data, river_data, weather_data, social_data
+from api.app.data_simulator import generate_realtime_data, river_data, weather_data, social_data
 
-from data_simulator import generate_realtime_data
+from api.app.data_simulator import generate_realtime_data
 
 class PlaybackState(str, Enum):
     PLAYING = "playing"

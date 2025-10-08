@@ -1,12 +1,13 @@
 """
-Location service - Business logic for location-related operations
+Location service - Business logic for location operations
 """
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from app.models import Location, RiverLevel, Weather, Social
+from app.models import Location, RiverLevel, Weather, Social, RiverPrediction
+from app.prediction_service import generate_predictions, store_predictions, get_prediction_accuracy
 
 
 def calculate_flood_risk(river_level: float) -> str:
@@ -149,3 +150,157 @@ def generate_system_alerts(session: Session) -> List[Dict[str, str]]:
                 })
     
     return alerts
+
+
+def get_data_statistics(session: Session) -> Dict[str, Any]:
+    """Get statistics about the current data in the database"""
+    try:
+        # Count records by type
+        river_count = session.query(RiverLevel).count()
+        weather_count = session.query(Weather).count()
+        social_count = session.query(Social).count()
+        location_count = session.query(Location).count()
+        
+        # Get latest timestamp
+        latest_river = session.query(RiverLevel).order_by(desc(RiverLevel.timestamp)).first()
+        latest_timestamp = latest_river.timestamp if latest_river else None
+        
+        return {
+            "total_locations": location_count,
+            "active_locations": location_count,  # All locations are considered active
+            "total_data_points": river_count + weather_count + social_count,
+            "river_levels_count": river_count,
+            "weather_data_count": weather_count,
+            "social_posts_count": social_count,
+            "latest_update": latest_timestamp.isoformat() if latest_timestamp else None
+        }
+    except Exception as e:
+        return {
+            "total_locations": 0,
+            "active_locations": 0,
+            "total_data_points": 0,
+            "river_levels_count": 0,
+            "weather_data_count": 0,
+            "social_posts_count": 0,
+            "latest_update": None,
+            "error": str(e)
+        }
+
+
+def get_analytics_data(session: Session, location_id: int, hours_back: int = 24) -> Dict[str, Any]:
+    """
+    Get comprehensive analytics data for a location including historical trends and predictions
+    """
+    location = session.query(Location).filter(Location.id == location_id).first()
+    if not location:
+        return {}
+    
+    cutoff_time = datetime.now() - timedelta(hours=hours_back)
+    
+    # Get historical river level data
+    historical_levels = session.query(RiverLevel).filter(
+        RiverLevel.location_id == location_id,
+        RiverLevel.timestamp >= cutoff_time
+    ).order_by(RiverLevel.timestamp.asc()).all()
+    
+    # Get current predictions
+    current_predictions = session.query(RiverPrediction).filter(
+        RiverPrediction.location_id == location_id,
+        RiverPrediction.predicted_for_time > datetime.now(),
+        RiverPrediction.prediction_timestamp >= datetime.now() - timedelta(minutes=30)
+    ).order_by(RiverPrediction.predicted_for_time.asc()).limit(6).all()  # Next 30 minutes
+    
+    # Get prediction accuracy metrics
+    accuracy_stats = get_prediction_accuracy(session, location_id, hours_back=24)
+    
+    # Format historical data
+    historical_data = [
+        {
+            "timestamp": level.timestamp.isoformat(),
+            "river_level_m": level.river_level_m,
+            "change_in_level_m": level.change_in_level_m,
+            "flood_risk": calculate_flood_risk(level.river_level_m)
+        }
+        for level in historical_levels
+    ]
+    
+    # Format prediction data
+    prediction_data = [
+        {
+            "predicted_for_time": pred.predicted_for_time.isoformat(),
+            "predicted_level_m": pred.predicted_level_m,
+            "confidence_score": pred.confidence_score,
+            "weather_influence": pred.weather_factor_influence,
+            "flood_risk": calculate_flood_risk(pred.predicted_level_m)
+        }
+        for pred in current_predictions
+    ]
+    
+    # Calculate summary statistics
+    if historical_levels:
+        levels = [level.river_level_m for level in historical_levels]
+        summary_stats = {
+            "min_level": min(levels),
+            "max_level": max(levels),
+            "avg_level": sum(levels) / len(levels),
+            "current_level": levels[-1] if levels else 0,
+            "trend": "rising" if len(levels) > 1 and levels[-1] > levels[-5] else "falling" if len(levels) > 1 and levels[-1] < levels[-5] else "stable"
+        }
+    else:
+        summary_stats = {
+            "min_level": 0,
+            "max_level": 0,
+            "avg_level": 0,
+            "current_level": 0,
+            "trend": "unknown"
+        }
+    
+    return {
+        "location": {
+            "id": location.id,
+            "name": location.name,
+            "latitude": location.latitude,
+            "longitude": location.longitude
+        },
+        "time_range": {
+            "hours_back": hours_back,
+            "start_time": cutoff_time.isoformat(),
+            "end_time": datetime.now().isoformat()
+        },
+        "historical_data": historical_data,
+        "predictions": prediction_data,
+        "summary_stats": summary_stats,
+        "accuracy_metrics": accuracy_stats,
+        "data_counts": {
+            "historical_points": len(historical_data),
+            "prediction_points": len(prediction_data)
+        }
+    }
+
+
+def generate_and_store_predictions(session: Session, location_id: int) -> Dict[str, Any]:
+    """
+    Generate new predictions for a location and store them in the database
+    """
+    try:
+        predictions = generate_predictions(session, location_id, prediction_minutes=30)
+        
+        if predictions:
+            store_predictions(session, location_id, predictions)
+            return {
+                "success": True,
+                "predictions_generated": len(predictions),
+                "message": f"Generated {len(predictions)} predictions for location {location_id}"
+            }
+        else:
+            return {
+                "success": False,
+                "predictions_generated": 0,
+                "message": "Insufficient data to generate predictions"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "predictions_generated": 0,
+            "message": f"Error generating predictions: {str(e)}"
+        }

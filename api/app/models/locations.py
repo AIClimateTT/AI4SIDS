@@ -16,3 +16,4 @@ class Location(Base):
     river_levels = relationship("RiverLevel", back_populates="location")
     weather_data = relationship("Weather", back_populates="location")
     social_data = relationship("Social", back_populates="location")
+    predictions = relationship("RiverPrediction", back_populates="location")

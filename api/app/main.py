@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 import os
 from contextlib import asynccontextmanager
-from data_simulator import generate_realtime_data
+from api.app.data_simulator import generate_realtime_data
 
 
 @asynccontextmanager

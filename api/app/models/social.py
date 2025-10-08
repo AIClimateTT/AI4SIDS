@@ -11,10 +11,6 @@ class Social(Base):
     timestamp = Column(DateTime, nullable=False)
     post_count = Column(Integer, nullable=False)
     sentiment_score = Column(Float, nullable=False)
-    st_augustine = Column(Integer, default=0)
-    piarco = Column(Integer, default=0)
-    cunupia = Column(Integer, default=0)
-    st_helena = Column(Integer, default=0)
     
     # Relationship
     location = relationship("Location", back_populates="social_data")

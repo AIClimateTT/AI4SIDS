@@ -1,9 +1,10 @@
 """
 Location routes/controller - API endpoints for location-related operations
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timedelta
 from typing import List
+from sqlalchemy.orm import Session
 
 from app.core.db import SessionDep
 from app.features.location.models import (
@@ -13,7 +14,8 @@ from app.features.location.models import (
 from app.features.location.service import (
     get_latest_river_data, get_latest_weather_data, get_latest_social_data,
     get_location_history_data, get_all_locations, get_location_timeline_data,
-    generate_system_alerts, calculate_flood_risk, generate_contextual_posts
+    generate_system_alerts, calculate_flood_risk, generate_contextual_posts,
+    get_data_statistics
 )
 
 router = APIRouter(prefix="/api", tags=["locations"])
@@ -123,7 +125,7 @@ async def get_system_update(session: SessionDep):
 
 
 @router.get("/timeline/{location}")
-async def get_location_timeline(location: str, session: SessionDep, minutes: int = 5):
+async def get_location_timeline(session: SessionDep, location: str, minutes: int = 5):
     """Get timeline data for location"""
     try:
         timeline_data = get_location_timeline_data(session, location, minutes)
@@ -157,7 +159,7 @@ async def get_location_timeline(location: str, session: SessionDep, minutes: int
 
 
 @router.get("/history/{location}")
-async def get_location_history(location: str, session: SessionDep, points: int = 20):
+async def get_location_history(session: SessionDep, location: str, points: int = 20):
     """Get historical data points for sparkline visualization"""
     try:
         # Limit points to prevent overload
@@ -242,3 +244,16 @@ async def get_available_locations(session: SessionDep):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting locations: {str(e)}")
+
+
+@router.get("/data-statistics")
+async def get_data_statistics_endpoint(session: SessionDep):
+    """Get database statistics for monitoring"""
+    try:
+        stats = get_data_statistics(session)
+        return {
+            "status": "success",
+            "statistics": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting data statistics: {str(e)}")
