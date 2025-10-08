@@ -10,6 +10,9 @@ import os
 from contextlib import asynccontextmanager
 from enum import Enum
 import math
+from data_simulator import generate_realtime_data, river_data, weather_data, social_data
+
+from data_simulator import generate_realtime_data
 
 class PlaybackState(str, Enum):
     PLAYING = "playing"
@@ -152,14 +155,14 @@ class EventDetector:
         """Detect flood threshold crossings and peaks"""
         events = []
         locations = set(d.get("location") for d in river_data)
-        
+
         for location in locations:
             if not location:
                 continue
                 
             location_data = [d for d in river_data if d.get("location") == location]
             location_data.sort(key=lambda x: x.get("timestamp", ""))
-            
+
             for i, point in enumerate(location_data):
                 level = point.get("river_level_m", 0)
                 
@@ -237,17 +240,19 @@ class EventDetector:
 
 # Global variables
 playback_controller = PlaybackController()
-river_data = []
-weather_data = []
-social_data = []
+# river_data = []
+# weather_data = []
+# social_data = []
 detected_events = []
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize data and prepare event detection"""
     global detected_events
-    load_data_from_json()
-    
+    asyncio.create_task(generate_realtime_data())
+    await asyncio.sleep(3)
+    # load_data_from_json()
+
     # Detect events in the data
     river_events = EventDetector.detect_flood_events(river_data)
     weather_events = EventDetector.detect_weather_events(weather_data)
@@ -319,7 +324,7 @@ def load_data_from_json():
             with open("data/social_data.json", "r") as f:
                 social_data = json.load(f)
             print(f"Loaded {len(social_data)} social data points from JSON")
-    
+
     except Exception as e:
         print(f"Error loading JSON data: {e}")
         load_fallback_data()
