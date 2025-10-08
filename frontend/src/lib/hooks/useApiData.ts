@@ -5,6 +5,7 @@ import type {
     RealTimeConditions,
     LocationsResponse,
     LocationTimeline,
+    LocationHistory,
     ApiStatus
 } from '../api/types';
 import type { FloodLocation } from '@/types';
@@ -15,6 +16,7 @@ export const queryKeys = {
     locations: ['locations'] as const,
     realTime: (location: string) => ['real-time', location] as const,
     timeline: (location: string, minutes: number) => ['timeline', location, minutes] as const,
+    locationHistory: (location: string, points: number) => ['location-history', location, points] as const,
     apiStatus: ['api-status'] as const,
 } as const;
 
@@ -101,6 +103,26 @@ export function useLocationTimeline(
     return useQuery({
         queryKey: location ? queryKeys.timeline(location, minutes) : [],
         queryFn: () => (location ? apiService.getLocationTimeline(location, minutes) : Promise.reject('No location')),
+        enabled: enabled && !!location,
+        refetchInterval: REAL_TIME_REFETCH_INTERVAL,
+        refetchIntervalInBackground: true,
+        staleTime: 10 * 1000,
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    });
+}
+
+/**
+ * Hook to get location history data for sparklines
+ */
+export function useLocationHistory(
+    location: string | null,
+    points: number = 20,
+    enabled: boolean = true
+): UseQueryResult<LocationHistory, Error> {
+    return useQuery({
+        queryKey: location ? queryKeys.locationHistory(location, points) : [],
+        queryFn: () => (location ? apiService.getLocationHistory(location, points) : Promise.reject('No location')),
         enabled: enabled && !!location,
         refetchInterval: REAL_TIME_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,

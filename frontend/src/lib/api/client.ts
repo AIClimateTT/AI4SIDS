@@ -3,6 +3,7 @@ import {
     ComprehensiveUpdate,
     LocationsResponse,
     LocationTimeline,
+    LocationHistory,
     ApiStatus,
     ApiLocation,
     mapApiRiskToFrontend
@@ -73,6 +74,16 @@ export const apiService = {
     getLocationTimeline: (location: string, minutes: number = 5): Promise<LocationTimeline> => {
         const encodedLocation = encodeURIComponent(location);
         return apiRequest<LocationTimeline>(`/api/timeline/${encodedLocation}?minutes=${minutes}`);
+    },
+
+    /**
+     * Get historical data for sparkline visualization
+     * @param location - Location name
+     * @param points - Number of historical points to fetch (default: 20, max: 100)
+     */
+    getLocationHistory: (location: string, points: number = 20): Promise<LocationHistory> => {
+        const encodedLocation = encodeURIComponent(location);
+        return apiRequest<LocationHistory>(`/api/history/${encodedLocation}?points=${points}`);
     },
 };
 
