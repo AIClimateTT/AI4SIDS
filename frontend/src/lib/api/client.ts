@@ -11,9 +11,7 @@ import {
 import type { FloodLocation } from '@/types';
 
 // Configuration
-const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:8000'
-    : 'https://your-api-domain.com'; // Update this for production
+const API_BASE_URL = 'http://localhost:8000';
 
 // Generic API request helper with error handling
 async function apiRequest<T>(endpoint: string): Promise<T> {
