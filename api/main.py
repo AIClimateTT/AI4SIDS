@@ -8,13 +8,15 @@ from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 import os
 from contextlib import asynccontextmanager
+from data_simulator import generate_realtime_data
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize data and start background tasks"""
     load_data_from_json()
-    asyncio.create_task(update_data_cycle())
+    # asyncio.create_task(update_data_cycle())
+    asyncio.create_task(generate_realtime_data())
     print("AI4SIDS Demo API started successfully")
     
     yield  # The application runs here
