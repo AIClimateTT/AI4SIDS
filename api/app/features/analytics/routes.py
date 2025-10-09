@@ -1,7 +1,7 @@
 """
 Analytics API endpoints - River level analytics and predictions
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -97,6 +97,6 @@ async def get_all_locations_summary(
     
     return {
         "locations_count": len(locations),
-        "last_updated": datetime.now().isoformat(),
+        "last_updated": datetime.now(timezone.utc).isoformat(),
         "locations_summary": summary_data
     }

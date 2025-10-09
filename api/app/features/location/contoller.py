@@ -2,7 +2,7 @@
 Location routes/controller - API endpoints for location-related operations
 """
 from fastapi import APIRouter, HTTPException, Depends
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List
 from sqlalchemy.orm import Session
 
@@ -33,7 +33,7 @@ async def get_real_time_conditions(location: str, session: SessionDep):
         if not river_point:
             raise HTTPException(status_code=404, detail=f"No river data found for {location}")
         
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
         flood_risk = calculate_flood_risk(river_point.river_level_m)
         
         # Generate contextual social posts
@@ -103,7 +103,7 @@ async def get_system_update(session: SessionDep):
                     "river_level": river_point.river_level_m,
                     "change_rate": river_point.change_in_level_m,
                     "current_risk": flood_risk,
-                    "last_updated": datetime.now().isoformat()
+                    "last_updated": datetime.now(timezone.utc).isoformat()
                 })
         
         alerts = generate_system_alerts(session)
@@ -117,7 +117,7 @@ async def get_system_update(session: SessionDep):
                 "total_alerts": len(alerts)
             },
             alerts=alerts,
-            timestamp=datetime.now()
+            timestamp=datetime.now(timezone.utc)
         )
         
     except Exception as e:
@@ -135,8 +135,13 @@ async def get_location_timeline(session: SessionDep, location: str, minutes: int
         timeline = []
         
         for i, point in enumerate(reversed(timeline_data)):
+            # Ensure timestamp is timezone-aware
+            timestamp = point.timestamp
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+            
             timeline.append({
-                "timestamp": point.timestamp.isoformat(),
+                "timestamp": timestamp.isoformat(),
                 "river_level": point.river_level_m,
                 "change_rate": point.change_in_level_m,
                 "flood_risk": calculate_flood_risk(point.river_level_m),
@@ -172,8 +177,13 @@ async def get_location_history(session: SessionDep, location: str, points: int =
         # Convert to sparkline format (oldest to newest)
         history = []
         for point in reversed(history_data):
+            # Ensure timestamp is timezone-aware
+            timestamp = point.timestamp
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+            
             history.append({
-                "timestamp": point.timestamp.isoformat(),
+                "timestamp": timestamp.isoformat(),
                 "value": point.river_level_m,
                 "change": point.change_in_level_m,
             })
@@ -197,7 +207,7 @@ async def get_location_history(session: SessionDep, location: str, points: int =
                 "value": current_level,
                 "risk": current_risk,
                 "change": history[-1]["change"] if history else 0,
-                "timestamp": history[-1]["timestamp"] if history else datetime.now().isoformat()
+                "timestamp": history[-1]["timestamp"] if history else datetime.now(timezone.utc).isoformat()
             },
             history=history,
             trend={

@@ -1,141 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, TrendingUp, TrendingDown, AlertTriangle, Clock, Target } from 'lucide-react';
-import Chart from 'react-apexcharts';
+import React, { useState, useEffect } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import {
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  Clock,
+  Target,
+} from 'lucide-react'
+import {
+  useLocationAnalytics,
+  useGeneratePredictions,
+} from '@/lib/hooks/useApiData'
+
+import { ClientOnly } from '@tanstack/react-router'
 
 interface AnalyticsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  locationName: string;
+  isOpen: boolean
+  onClose: () => void
+  locationName: string
 }
 
-interface AnalyticsData {
-  location: {
-    id: number;
-    name: string;
-    latitude: number;
-    longitude: number;
-  };
-  time_range: {
-    hours_back: number;
-    start_time: string;
-    end_time: string;
-  };
-  historical_data: Array<{
-    timestamp: string;
-    river_level_m: number;
-    change_in_level_m: number;
-    flood_risk: string;
-  }>;
-  predictions: Array<{
-    predicted_for_time: string;
-    predicted_level_m: number;
-    confidence_score: number;
-    weather_influence: number;
-    flood_risk: string;
-  }>;
-  summary_stats: {
-    min_level: number;
-    max_level: number;
-    avg_level: number;
-    current_level: number;
-    trend: string;
-  };
-  accuracy_metrics: {
-    accuracy_percentage: number;
-    average_error: number;
-    total_predictions: number;
-    accurate_predictions: number;
-  };
-  data_counts: {
-    historical_points: number;
-    prediction_points: number;
-  };
+interface AnalyticsModalProps {
+  isOpen: boolean
+  onClose: () => void
+  locationName: string
 }
 
-const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locationName }) => {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hoursBack, setHoursBack] = useState(24);
+const AnalyticsModal: React.FC<AnalyticsModalProps> = ({
+  isOpen,
+  onClose,
+  locationName,
+}) => {
+  const [hoursBack, setHoursBack] = useState(24)
+  const [Chart, setChart] = useState<any>(null)
 
-  const fetchAnalyticsData = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(`http://localhost:8000/api/analytics/by-name/${encodeURIComponent(locationName)}?hours_back=${hoursBack}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch analytics data: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setAnalyticsData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load analytics data');
-      console.error('Analytics fetch error:', err);
-    } finally {
-      setLoading(false);
+  // Dynamically import Chart component only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('react-apexcharts').then((module) => {
+        setChart(() => module.default)
+      })
     }
-  };
+  }, [])
+
+  // Use TanStack Query hooks instead of manual fetch
+  const {
+    data: analyticsData,
+    isLoading: loading,
+    error,
+    refetch: refetchAnalytics,
+  } = useLocationAnalytics(locationName, hoursBack, isOpen)
+
+  const predictionActions = useGeneratePredictions()
 
   const generateNewPredictions = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/analytics/by-name/${encodeURIComponent(locationName)}/predictions`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to generate predictions: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      console.log('Predictions generated:', result);
-      
-      // Refresh analytics data to show new predictions
-      fetchAnalyticsData();
-    } catch (err) {
-      console.error('Prediction generation error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate predictions');
-    }
-  };
+      const result = await predictionActions.generateByName(locationName)
+      console.log('Predictions generated:', result)
 
-  useEffect(() => {
-    if (isOpen && locationName) {
-      fetchAnalyticsData();
+      // Refresh analytics data to show new predictions
+      refetchAnalytics()
+    } catch (err) {
+      console.error('Prediction generation error:', err)
     }
-  }, [isOpen, locationName, hoursBack]);
+  }
 
   const getChartOptions = () => {
-    if (!analyticsData) return {};
+    if (!analyticsData) return {}
 
     return {
       chart: {
         height: 400,
         type: 'line' as const,
         zoom: {
-          enabled: true
+          enabled: true,
         },
         toolbar: {
-          show: true
-        }
+          show: true,
+        },
       },
       colors: ['#2563eb', '#dc2626', '#059669'],
       dataLabels: {
-        enabled: false
+        enabled: false,
       },
       stroke: {
         curve: 'smooth' as const,
         width: [3, 2, 2],
-        dashArray: [0, 0, 5]
+        dashArray: [0, 0, 5],
       },
       title: {
         text: `River Level Analytics - ${locationName}`,
-        align: 'left' as const
+        align: 'left' as const,
       },
       grid: {
         borderColor: '#e5e7eb',
@@ -147,29 +111,51 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
       xaxis: {
         type: 'datetime' as const,
         title: {
-          text: 'Time'
-        }
+          text: 'Time (UTC)',
+        },
+        labels: {
+          datetimeUTC: true, // Force UTC display instead of local timezone
+        },
       },
       yaxis: {
         title: {
-          text: 'River Level (meters)'
+          text: 'River Level (meters)',
         },
-        min: Math.max(0, Math.min(...analyticsData.historical_data.map(d => d.river_level_m)) - 0.5),
-        max: Math.max(...analyticsData.historical_data.map(d => d.river_level_m), ...analyticsData.predictions.map(d => d.predicted_level_m)) + 0.5
+        min: Math.max(
+          0,
+          Math.min(
+            ...analyticsData.historical_data.map((d) => d.river_level_m),
+          ) - 0.5,
+        ),
+        max:
+          Math.max(
+            ...analyticsData.historical_data.map((d) => d.river_level_m),
+            ...analyticsData.predictions.map((d) => d.predicted_level_m),
+          ) + 0.5,
+        labels: {
+          formatter: function (val: number) {
+            return parseFloat(val.toString()).toFixed(3) + 'm'
+          },
+        },
       },
       tooltip: {
         shared: true,
         intersect: false,
         x: {
-          format: 'MMM dd, HH:mm'
-        }
+          format: 'MMM dd, HH:mm',
+        },
+        y: {
+          formatter: function (val: number) {
+            return parseFloat(val.toString()).toFixed(3) + 'm'
+          },
+        },
       },
       legend: {
         position: 'top' as const,
         horizontalAlign: 'right' as const,
         floating: true,
         offsetY: -25,
-        offsetX: -5
+        offsetX: -5,
       },
       annotations: {
         yaxis: [
@@ -182,8 +168,8 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                 color: '#fff',
                 background: '#f59e0b',
               },
-              text: 'Flood Threshold (3.0m)'
-            }
+              text: 'Flood Threshold (3.0m)',
+            },
           },
           {
             y: 4.2,
@@ -194,66 +180,75 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                 color: '#fff',
                 background: '#dc2626',
               },
-              text: 'Critical Level (4.2m)'
-            }
-          }
-        ]
-      }
-    };
-  };
+              text: 'Critical Level (4.2m)',
+            },
+          },
+        ],
+      },
+    }
+  }
 
   const getChartSeries = () => {
-    if (!analyticsData) return [];
+    if (!analyticsData) return []
 
     return [
       {
         name: 'Historical Data',
-        data: analyticsData.historical_data.map(d => [
+        data: analyticsData.historical_data.map((d) => [
           new Date(d.timestamp).getTime(),
-          d.river_level_m
-        ])
+          d.river_level_m,
+        ]),
       },
       {
         name: 'Predictions',
-        data: analyticsData.predictions.map(d => [
+        data: analyticsData.predictions.map((d) => [
           new Date(d.predicted_for_time).getTime(),
-          d.predicted_level_m
-        ])
+          d.predicted_level_m,
+        ]),
       },
       {
         name: 'Confidence Bounds',
-        data: analyticsData.predictions.map(d => [
+        data: analyticsData.predictions.map((d) => [
           new Date(d.predicted_for_time).getTime(),
-          d.predicted_level_m + (d.confidence_score * 0.1) // Simple confidence visualization
-        ])
-      }
-    ];
-  };
+          d.predicted_level_m + d.confidence_score * 0.1, // Simple confidence visualization
+        ]),
+      },
+    ]
+  }
 
   const getRiskColor = (risk: string) => {
     switch (risk?.toUpperCase()) {
-      case 'CRITICAL': return 'bg-red-100 text-red-800 border-red-200';
-      case 'HIGH': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'MEDIUM': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'ELEVATED': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'LOW': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'CRITICAL':
+        return 'bg-red-100 text-red-800 border-red-200'
+      case 'HIGH':
+        return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'MEDIUM':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'ELEVATED':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'LOW':
+        return 'bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
     }
-  };
+  }
 
   const getTrendIcon = (trend: string) => {
     switch (trend?.toLowerCase()) {
-      case 'rising': return <TrendingUp className="h-4 w-4 text-red-500" />;
-      case 'falling': return <TrendingDown className="h-4 w-4 text-green-500" />;
-      default: return <Clock className="h-4 w-4 text-blue-500" />;
+      case 'rising':
+        return <TrendingUp className="h-4 w-4 text-red-500" />
+      case 'falling':
+        return <TrendingDown className="h-4 w-4 text-green-500" />
+      default:
+        return <Clock className="h-4 w-4 text-blue-500" />
     }
-  };
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-fit sm:max-w-lg md:max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -272,9 +267,15 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <div className="flex items-center">
               <AlertTriangle className="h-5 w-5 text-red-400 mr-2" />
-              <span className="text-red-800">{error}</span>
+              <span className="text-red-800">
+                {error.message || 'An error occurred'}
+              </span>
             </div>
-            <Button onClick={fetchAnalyticsData} className="mt-2" variant="outline">
+            <Button
+              onClick={() => refetchAnalytics()}
+              className="mt-2"
+              variant="outline"
+            >
               Retry
             </Button>
           </div>
@@ -299,7 +300,11 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                   <option value={72}>Last 72 hours</option>
                 </select>
               </div>
-              <Button onClick={generateNewPredictions} size="sm" variant="outline">
+              <Button
+                onClick={generateNewPredictions}
+                size="sm"
+                variant="outline"
+              >
                 <Target className="h-4 w-4 mr-1" />
                 Generate New Predictions
               </Button>
@@ -314,10 +319,18 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                     {getTrendIcon(analyticsData.summary_stats.trend)}
                   </div>
                   <div className="text-2xl font-bold">
-                    {analyticsData.summary_stats.current_level.toFixed(2)}m
+                    {analyticsData.summary_stats.current_level.toFixed(3)}m
                   </div>
-                  <Badge className={getRiskColor(analyticsData.historical_data[analyticsData.historical_data.length - 1]?.flood_risk || 'UNKNOWN')}>
-                    {analyticsData.historical_data[analyticsData.historical_data.length - 1]?.flood_risk || 'UNKNOWN'}
+                  <Badge
+                    className={getRiskColor(
+                      analyticsData.historical_data[
+                        analyticsData.historical_data.length - 1
+                      ]?.flood_risk || 'UNKNOWN',
+                    )}
+                  >
+                    {analyticsData.historical_data[
+                      analyticsData.historical_data.length - 1
+                    ]?.flood_risk || 'UNKNOWN'}
                   </Badge>
                 </CardContent>
               </Card>
@@ -326,20 +339,27 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                 <CardContent className="p-4">
                   <span className="text-sm text-gray-600">24h Range</span>
                   <div className="text-lg font-semibold">
-                    {analyticsData.summary_stats.min_level.toFixed(2)} - {analyticsData.summary_stats.max_level.toFixed(2)}m
+                    {analyticsData.summary_stats.min_level.toFixed(3)} -{' '}
+                    {analyticsData.summary_stats.max_level.toFixed(3)}m
                   </div>
-                  <span className="text-sm text-gray-500">Avg: {analyticsData.summary_stats.avg_level.toFixed(2)}m</span>
+                  <span className="text-sm text-gray-500">
+                    Avg: {analyticsData.summary_stats.avg_level.toFixed(3)}m
+                  </span>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="p-4">
-                  <span className="text-sm text-gray-600">Prediction Accuracy</span>
+                  <span className="text-sm text-gray-600">
+                    Prediction Accuracy
+                  </span>
                   <div className="text-2xl font-bold text-green-600">
                     {analyticsData.accuracy_metrics.accuracy_percentage}%
                   </div>
                   <span className="text-sm text-gray-500">
-                    {analyticsData.accuracy_metrics.accurate_predictions}/{analyticsData.accuracy_metrics.total_predictions} predictions
+                    {analyticsData.accuracy_metrics.accurate_predictions}/
+                    {analyticsData.accuracy_metrics.total_predictions}{' '}
+                    predictions
                   </span>
                 </CardContent>
               </Card>
@@ -363,12 +383,21 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                 <CardTitle>River Level Trends & Predictions</CardTitle>
               </CardHeader>
               <CardContent>
-                <Chart
-                  options={getChartOptions()}
-                  series={getChartSeries()}
-                  type="line"
-                  height={400}
-                />
+                <ClientOnly>
+                  {Chart ? (
+                    <Chart
+                      options={getChartOptions()}
+                      series={getChartSeries()}
+                      type="line"
+                      height={400}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-[400px]">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2">Loading chart...</span>
+                    </div>
+                  )}
+                </ClientOnly>
               </CardContent>
             </Card>
 
@@ -394,7 +423,9 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                         {analyticsData.predictions.map((pred, index) => (
                           <tr key={index} className="border-b hover:bg-gray-50">
                             <td className="p-2">
-                              {new Date(pred.predicted_for_time).toLocaleTimeString()}
+                              {new Date(
+                                pred.predicted_for_time,
+                              ).toLocaleTimeString()}
                             </td>
                             <td className="p-2 font-mono">
                               {pred.predicted_level_m.toFixed(3)}m
@@ -404,7 +435,9 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                                 <div className="w-12 bg-gray-200 rounded-full h-2">
                                   <div
                                     className="bg-blue-600 h-2 rounded-full"
-                                    style={{ width: `${pred.confidence_score * 100}%` }}
+                                    style={{
+                                      width: `${pred.confidence_score * 100}%`,
+                                    }}
                                   ></div>
                                 </div>
                                 <span className="text-xs">
@@ -413,12 +446,17 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
                               </div>
                             </td>
                             <td className="p-2">
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                pred.weather_influence > 0 ? 'bg-orange-100 text-orange-800' : 
-                                pred.weather_influence < 0 ? 'bg-blue-100 text-blue-800' : 
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {pred.weather_influence > 0 ? '+' : ''}{pred.weather_influence.toFixed(3)}
+                              <span
+                                className={`text-xs px-2 py-1 rounded ${
+                                  pred.weather_influence > 0
+                                    ? 'bg-orange-100 text-orange-800'
+                                    : pred.weather_influence < 0
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                }`}
+                              >
+                                {pred.weather_influence > 0 ? '+' : ''}
+                                {pred.weather_influence.toFixed(3)}
                               </span>
                             </td>
                             <td className="p-2">
@@ -438,7 +476,7 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, locati
         )}
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default AnalyticsModal;
+export default AnalyticsModal

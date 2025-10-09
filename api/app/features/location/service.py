@@ -1,13 +1,13 @@
 """
 Location service - Business logic for location operations
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from app.models import Location, RiverLevel, Weather, Social, RiverPrediction
-from app.prediction_service import generate_predictions, store_predictions, get_prediction_accuracy
+from app.enhanced_prediction_service import generate_predictions, store_predictions, get_prediction_accuracy
 
 
 def calculate_flood_risk(river_level: float) -> str:
@@ -146,7 +146,7 @@ def generate_system_alerts(session: Session) -> List[Dict[str, str]]:
                     "level": risk.lower(),
                     "location": location.name,
                     "message": f"{risk} flood risk in {location.name} - River level: {river_data.river_level_m}m",
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 })
     
     return alerts
@@ -195,7 +195,7 @@ def get_analytics_data(session: Session, location_id: int, hours_back: int = 24)
     if not location:
         return {}
     
-    cutoff_time = datetime.now() - timedelta(hours=hours_back)
+    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours_back)
     
     # Get historical river level data
     historical_levels = session.query(RiverLevel).filter(
@@ -206,8 +206,8 @@ def get_analytics_data(session: Session, location_id: int, hours_back: int = 24)
     # Get current predictions
     current_predictions = session.query(RiverPrediction).filter(
         RiverPrediction.location_id == location_id,
-        RiverPrediction.predicted_for_time > datetime.now(),
-        RiverPrediction.prediction_timestamp >= datetime.now() - timedelta(minutes=30)
+        RiverPrediction.predicted_for_time > datetime.now(timezone.utc),
+        RiverPrediction.prediction_timestamp >= datetime.now(timezone.utc) - timedelta(minutes=30)
     ).order_by(RiverPrediction.predicted_for_time.asc()).limit(6).all()  # Next 30 minutes
     
     # Get prediction accuracy metrics
@@ -216,7 +216,7 @@ def get_analytics_data(session: Session, location_id: int, hours_back: int = 24)
     # Format historical data
     historical_data = [
         {
-            "timestamp": level.timestamp.isoformat(),
+            "timestamp": (level.timestamp.replace(tzinfo=timezone.utc) if level.timestamp.tzinfo is None else level.timestamp).isoformat(),
             "river_level_m": level.river_level_m,
             "change_in_level_m": level.change_in_level_m,
             "flood_risk": calculate_flood_risk(level.river_level_m)
@@ -227,7 +227,7 @@ def get_analytics_data(session: Session, location_id: int, hours_back: int = 24)
     # Format prediction data
     prediction_data = [
         {
-            "predicted_for_time": pred.predicted_for_time.isoformat(),
+            "predicted_for_time": (pred.predicted_for_time.replace(tzinfo=timezone.utc) if pred.predicted_for_time.tzinfo is None else pred.predicted_for_time).isoformat(),
             "predicted_level_m": pred.predicted_level_m,
             "confidence_score": pred.confidence_score,
             "weather_influence": pred.weather_factor_influence,
@@ -265,7 +265,7 @@ def get_analytics_data(session: Session, location_id: int, hours_back: int = 24)
         "time_range": {
             "hours_back": hours_back,
             "start_time": cutoff_time.isoformat(),
-            "end_time": datetime.now().isoformat()
+            "end_time": datetime.now(timezone.utc).isoformat()
         },
         "historical_data": historical_data,
         "predictions": prediction_data,

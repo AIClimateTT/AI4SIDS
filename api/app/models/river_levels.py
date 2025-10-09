@@ -8,7 +8,7 @@ class RiverLevel(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=False)
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)  # Enable timezone support
     river_level_m = Column(Float, nullable=False)
     change_in_level_m = Column(Float, nullable=False)
     

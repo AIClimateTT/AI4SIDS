@@ -8,8 +8,8 @@ class RiverPrediction(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=False)
-    prediction_timestamp = Column(DateTime, nullable=False)  # When prediction was made
-    predicted_for_time = Column(DateTime, nullable=False)    # Time being predicted for
+    prediction_timestamp = Column(DateTime(timezone=True), nullable=False)  # When prediction was made
+    predicted_for_time = Column(DateTime(timezone=True), nullable=False)    # Time being predicted for
     predicted_level_m = Column(Float, nullable=False)
     confidence_score = Column(Float, nullable=False)         # 0.0 to 1.0
     weather_factor_influence = Column(Float, nullable=False) # How much weather affected prediction

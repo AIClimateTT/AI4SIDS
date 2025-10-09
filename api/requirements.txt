@@ -9,3 +9,4 @@ psycopg2-binary
 pytz>=2025.1
 pandas
 alembic
+numpy

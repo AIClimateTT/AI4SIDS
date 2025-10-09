@@ -5,10 +5,10 @@ from contextlib import asynccontextmanager
 import asyncio
 
 from app.core.db import init_db
-from app.core.data_loader import load_all_data
 from app.data_simulator import generate_realtime_data
 from app.features.location.contoller import router as location_router
 from app.features.analytics.controller import router as analytics_router
+from app.background_tasks import start_prediction_tasks, stop_prediction_tasks
 
 
 @asynccontextmanager
@@ -25,12 +25,21 @@ async def lifespan(app: FastAPI):
     # Start real-time data generation
     asyncio.create_task(generate_realtime_data())
     
+    # Start background prediction generation tasks
+    await start_prediction_tasks()
+    
     print("✅ AI4SIDS Real-Time API started successfully")
     print("📊 Database: SQLite with real-time data simulation")
     print("🌊 Real-time generation: Every 15 seconds")
+    print("🔮 Prediction generation: Every 5 minutes")
     print("🧹 Auto-cleanup: Keep last 24 hours of data")
     
     yield
+    
+    # Cleanup when shutting down
+    print("🛑 Shutting down AI4SIDS Real-Time API...")
+    await stop_prediction_tasks()
+    print("✅ Shutdown complete")
 
 
 app = FastAPI(
@@ -53,72 +62,23 @@ app.include_router(location_router)
 app.include_router(analytics_router)
 
 
-@app.get("/")
-async def root():
-    """API root endpoint with system information"""
-    from app.services.realtime_data_service import RealTimeDataService
-    
-    stats = RealTimeDataService.get_data_statistics()
-    
-    return {
-        "message": "AI4SIDS Real-Time Flood Monitoring API",
-        "version": "3.0.0",
-        "status": "active",
-        "architecture": "MVC (Models-Views-Controllers)",
-        "database": "SQLite with real-time simulation",
-        "data_statistics": stats,
-        "endpoints": {
-            "locations": "/api/locations",
-            "real_time": "/api/real-time/{location}",
-            "history": "/api/history/{location}",
-            "timeline": "/api/timeline/{location}",
-            "system_update": "/api/system-update",
-            "analytics": "/api/analytics/{location_id}",
-            "predictions": "/api/analytics/{location_id}/predictions",
-            "analytics_summary": "/api/analytics/"
-        },
-        "features": [
-            "Real-time river level monitoring",
-            "Weather prediction vs actual tracking", 
-            "Social media sentiment analysis",
-            "Flood risk assessment",
-            "Historical data analysis",
-            "Automated data cleanup",
-            "SQLite persistence",
-            "Predictive analytics with 30-minute forecasting",
-            "Prediction accuracy tracking",
-            "Interactive analytics API"
-        ]
-    }
+@app.get("/api/predictions/status")
+async def get_prediction_status():
+    """Get status of background prediction tasks"""
+    from app.background_tasks import get_prediction_task_status
+    return get_prediction_task_status()
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    from app.services.realtime_data_service import RealTimeDataService
-    
+@app.post("/api/predictions/generate")
+async def trigger_prediction_generation():
+    """Manually trigger prediction generation for all locations"""
+    from app.background_tasks import force_prediction_generation
     try:
-        stats = RealTimeDataService.get_data_statistics()
-        locations = RealTimeDataService.get_available_locations()
-        
-        return {
-            "status": "healthy",
-            "database": "connected",
-            "active_locations": len(locations),
-            "total_records": (
-                stats.get("river_records", 0) + 
-                stats.get("weather_records", 0) + 
-                stats.get("social_records", 0)
-            ),
-            "last_update": stats.get("latest_update"),
-            "simulation": "active"
-        }
+        await force_prediction_generation()
+        return {"success": True, "message": "Prediction generation triggered successfully"}
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e),
-            "database": "disconnected"
-        }
+        return {"success": False, "message": f"Failed to trigger prediction generation: {str(e)}"}
+
 
 
 if __name__ == "__main__":

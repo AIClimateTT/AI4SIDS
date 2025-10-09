@@ -2,7 +2,7 @@
 import asyncio
 import numpy as np
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.core.db import SessionLocal
 from app.models.locations import Location
@@ -77,7 +77,7 @@ async def generate_realtime_data():
     print("🌊 Starting real-time data generation...")
 
     while True:
-        timestamp = datetime.now()
+        timestamp = datetime.now(timezone.utc)
         
         try:
             with SessionLocal() as db:
@@ -86,10 +86,27 @@ async def generate_realtime_data():
                     location_id = location_cache[sensor_id]
                     
                     # === RIVER LEVEL SIMULATION ===
+                    # === VIDEO RECORDING MODE: Accelerated flood scenario ===
                     prev_level = level_tracker[sensor_id]
-                    change = np.random.normal(loc=0.02, scale=0.01)  # Slight upward drift
+                    
+                    # Create dramatic flood scenario for video
+                    if cycle < 20:  # First minute: gradual rise
+                        change = np.random.normal(loc=0.08, scale=0.02)  # Faster rise
+                    elif cycle < 40:  # Second minute: rapid flood development
+                        change = np.random.normal(loc=0.15, scale=0.03)  # Rapid rise
+                    elif cycle < 60:  # Third minute: peak flooding
+                        change = np.random.normal(loc=0.05, scale=0.04)  # Near peak with fluctuation
+                    else:  # After 3 minutes: gradual decline
+                        change = np.random.normal(loc=-0.02, scale=0.03)  # Slow decline
+                    
                     new_level = max(prev_level + change, 0)  # Prevent negative levels
                     level_tracker[sensor_id] = new_level
+                    
+                    # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
+                    # prev_level = level_tracker[sensor_id]
+                    # change = np.random.normal(loc=0.02, scale=0.01)  # Slight upward drift
+                    # new_level = max(prev_level + change, 0)  # Prevent negative levels
+                    # level_tracker[sensor_id] = new_level
                     
                     # Create river level record
                     river_record = RiverLevel(
@@ -101,12 +118,24 @@ async def generate_realtime_data():
                     db.add(river_record)
                     
                     # === WEATHER SIMULATION ===
-                    # Predicted values
-                    pred_rain = round(np.random.uniform(0.5, 1.5), 2)
+                    # === VIDEO RECORDING MODE: Weather supports flood scenario ===
+                    if cycle < 30:  # First 1.5 minutes: heavy rain scenario
+                        pred_rain = round(np.random.uniform(3.0, 5.0), 2)  # Heavy rain
+                        pred_storm = True  # Storm conditions
+                    elif cycle < 50:  # Next minute: continued rain
+                        pred_rain = round(np.random.uniform(2.0, 4.0), 2)  # Moderate-heavy rain
+                        pred_storm = random.random() < 0.7  # Likely storm
+                    else:  # After 2.5 minutes: rain subsiding
+                        pred_rain = round(np.random.uniform(0.5, 2.0), 2)  # Light-moderate rain
+                        pred_storm = random.random() < 0.3  # Occasional storm
+                    
+                    # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
+                    # pred_rain = round(np.random.uniform(0.5, 1.5), 2)
+                    # pred_storm = random.random() < 0.3
                     pred_wind = round(np.random.uniform(10, 15), 1)
                     pred_temp = round(np.random.uniform(26, 28), 1)
                     pred_humid = round(np.random.uniform(70, 85), 1)
-                    pred_storm = random.random() < 0.3
+                    # pred_storm = random.random() < 0.3  # Moved above
                     
                     # Actual values (predicted + realistic error)
                     act_rain = pred_rain + np.random.normal(loc=0.1, scale=0.05)
@@ -178,17 +207,24 @@ async def generate_realtime_data():
                 db.query(Social).filter(Social.timestamp < cleanup_cutoff).delete()
                 db.commit()
                 
-                print(f"[{timestamp.strftime('%H:%M:%S')}] ✅ Generated data for {len(SENSOR_LOCATIONS)} locations")
+                # Display local time in console for user convenience, but store UTC in database
+                local_time = datetime.now()
+                print(f"[{local_time.strftime('%H:%M:%S')}] ✅ Generated data for {len(SENSOR_LOCATIONS)} locations")
                 
         except Exception as e:
             print(f"❌ Error generating data: {e}")
             # Continue the loop even if there's an error
             
         # Wait before next generation cycle
-        if cycle > 3:  # Skip initial delays for faster startup
-            await asyncio.sleep(15)
-        else:
-            await asyncio.sleep(2)  # Faster initial cycles
+        # === VIDEO RECORDING MODE ===
+        # Fast cycles for single flood scenario recording
+        await asyncio.sleep(2)  # 2 seconds per cycle (5x faster than normal)
+        
+        # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
+        # if cycle > 3:  # Skip initial delays for faster startup
+        #     await asyncio.sleep(15)  # Normal 15-second cycles
+        # else:
+        #     await asyncio.sleep(2)  # Faster initial cycles
             
         cycle += 1
 
@@ -230,7 +266,7 @@ def get_historical_data_for_location(location_name: str, data_type: str = "river
             if not location:
                 return []
                 
-            cutoff_time = datetime.now() - timedelta(minutes=minutes)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=minutes)
             
             if data_type == "river":
                 return db.query(RiverLevel).filter(

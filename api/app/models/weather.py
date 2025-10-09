@@ -8,7 +8,7 @@ class Weather(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=False)
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)  # Enable timezone support
     
     # Predicted values
     predicted_rainfall_mm = Column(Float, nullable=False)

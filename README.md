@@ -71,9 +71,3 @@ The frontend will be available at `http://localhost:5173`
 - `GET /api/real-time/{location}` - Location conditions
 - `GET /api/timeline/{location}` - Historical data
 
-### Playback Controls (Enhanced API)
-
-- `POST /api/playback/control` - Play/pause/seek controls
-- `GET /api/playback/status` - Current playback state
-- `GET /api/playback/timeline` - Events and bookmarks
-- `POST /api/playback/bookmark` - Add bookmarks

@@ -2,7 +2,7 @@
 Analytics controller - API endpoints for location analytics and predictions
 """
 from fastapi import APIRouter, HTTPException, Query
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 from app.core.db import SessionDep
@@ -148,6 +148,6 @@ async def get_all_locations_summary(
     
     return {
         "locations_count": len(locations),
-        "last_updated": datetime.now().isoformat(),
+        "last_updated": datetime.now(timezone.utc).isoformat(),
         "locations_summary": summary_data
     }
