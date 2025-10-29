@@ -11,7 +11,7 @@ export interface RiverConditions {
     level: number;
     change_rate: number;
     trend: 'rising' | 'falling' | 'stable';
-    flood_risk: 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    flood_risk: 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
     sensor_id: string;
 }
 
@@ -53,10 +53,12 @@ export interface SystemStatus {
 }
 
 export interface Alert {
-    level: 'low' | 'elevated' | 'medium' | 'high' | 'critical';
+    level: 'safe' | 'low' | 'moderate' | 'high' | 'critical';
     location: string;
     message: string;
     timestamp: string;
+    river_level?: number;
+    change_rate?: number;
 }
 
 export interface LocationSummary {
@@ -64,7 +66,7 @@ export interface LocationSummary {
     sensor_id: string;
     latitude: number;
     longitude: number;    
-    flood_risk: 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    flood_risk: 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
     river_level: number;
     change_rate: number;
     last_updated: string;
@@ -82,7 +84,7 @@ export interface ApiLocation {
     latitude: number;
     longitude: number;
     sensor_id: string;
-    current_risk: 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
+    current_risk: 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
     has_data: boolean;
 }
 
@@ -95,7 +97,7 @@ export interface TimelinePoint {
     timestamp: string;
     river_level: number;
     change_rate: number;
-    flood_risk: 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    flood_risk: 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
     minutes_ago: number;
 }
 
@@ -152,22 +154,22 @@ export interface ApiStatus {
 }
 
 // Utility type for converting API risk levels to frontend risk levels
-export type ApiRiskLevel = 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
-export type FrontendRiskLevel = 'low' | 'medium' | 'high' | 'critical';
+export type ApiRiskLevel = 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
+export type FrontendRiskLevel = 'safe' | 'low' | 'moderate' | 'high' | 'critical';
 
 export const mapApiRiskToFrontend = (apiRisk: ApiRiskLevel): FrontendRiskLevel => {
     switch (apiRisk) {
+        case 'SAFE':
+            return 'safe';
         case 'LOW':
             return 'low';
-        case 'ELEVATED':
-        case 'MEDIUM':
-            return 'medium';
+        case 'MODERATE':
+            return 'moderate';
         case 'HIGH':
             return 'high';
         case 'CRITICAL':
             return 'critical';
-        case 'UNKNOWN':
         default:
-            return 'low';
+            return 'safe';
     }
 };

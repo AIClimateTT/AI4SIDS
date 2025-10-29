@@ -8,7 +8,8 @@ import { TanstackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
-import appCss from '../styles.css?url'
+import appCsstw from '../styles.css?url'
+import appCss from '../App.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -31,6 +32,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
     links: [
+      {
+        rel: 'stylesheet',
+        href: appCsstw,
+      },
       {
         rel: 'stylesheet',
         href: appCss,

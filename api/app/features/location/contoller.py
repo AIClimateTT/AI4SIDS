@@ -71,8 +71,8 @@ async def get_real_time_conditions(location: str, session: SessionDep):
                 "recommendation": (
                     "Immediate evacuation recommended" if flood_risk == "CRITICAL" else
                     "Monitor closely and prepare to evacuate" if flood_risk == "HIGH" else
-                    "Flooding likely - avoid travel and stay alert" if flood_risk == "MEDIUM" else
-                    "Conditions deteriorating - monitor closely" if flood_risk == "ELEVATED" else
+                    "Flooding likely - avoid travel and stay alert" if flood_risk == "MODERATE" else
+                    "Conditions approaching flood threshold - monitor closely" if flood_risk == "LOW" else
                     "Normal conditions - continue monitoring"
                 ),
                 "correlation": f"High rainfall ({weather_point.actual_rainfall_mm if weather_point else 1.0}mm) correlating with {'rising' if river_point.change_in_level_m > 0 else 'stable'} river levels"

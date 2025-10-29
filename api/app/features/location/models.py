@@ -28,7 +28,7 @@ class RealTimeConditions(BaseModel):
 class ComprehensiveUpdate(BaseModel):
     locations: List[Dict[str, Any]]
     system_status: Dict[str, Any]
-    alerts: List[Dict[str, str]]
+    alerts: List[Dict[str, Any]]  # Changed from Dict[str, str] to allow float values
     timestamp: datetime
 
 

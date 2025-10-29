@@ -1,5 +1,5 @@
 // src/components/sidebar-with-sparklines.tsx
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import type { SidebarProps } from '@/types'
 import {
   useSystemUpdate,
@@ -50,23 +50,25 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
   const locations = systemUpdate?.locations || []
 
   // Group locations by risk level
-  const groupedLocations = {
-    critical: locations.filter((loc) => loc.flood_risk === 'CRITICAL'),
-    high: locations.filter((loc) => loc.flood_risk === 'HIGH'),
-    medium: locations.filter(
-      (loc) => loc.flood_risk === 'MEDIUM' || loc.flood_risk === 'ELEVATED',
-    ),
-    low: locations.filter((loc) => loc.flood_risk === 'LOW'),
-  }
+  const groupedLocations = useMemo(
+    () => ({
+      critical: locations.filter((loc) => loc.flood_risk === 'CRITICAL'),
+      high: locations.filter((loc) => loc.flood_risk === 'HIGH'),
+      moderate: locations.filter((loc) => loc.flood_risk === 'MODERATE'),
+      low: locations.filter(
+        (loc) => loc.flood_risk === 'LOW' || loc.flood_risk === 'SAFE',
+      ),
+    }),
+    [locations],
+  )
 
   // Toggle section expansion
-  const toggleSection = (section: string) => {
+  const toggleSection = (section: 'critical' | 'high' | 'moderate' | 'low') => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }))
   }
-
   // Loading state
   if (systemLoading) {
     return (
@@ -288,26 +290,26 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* MEDIUM Section */}
-        {groupedLocations.medium.length > 0 && (
+        {/* MODERATE Section */}
+        {groupedLocations.moderate.length > 0 && (
           <div className="space-y-2">
             <button
-              onClick={() => toggleSection('medium')}
+              onClick={() => toggleSection('moderate')}
               className="w-full flex items-center justify-between px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition-colors"
             >
               <div className="flex items-center space-x-2">
                 <span className="text-yellow-600 font-bold">🟡 MEDIUM</span>
                 <Badge className="bg-yellow-600 text-white text-xs">
-                  {groupedLocations.medium.length}
+                  {groupedLocations.moderate.length}
                 </Badge>
               </div>
               <span className="text-yellow-600 text-sm">
-                {expandedSections.medium ? '▼' : '▶'}
+                {expandedSections.moderate ? '▼' : '▶'}
               </span>
             </button>
-            {expandedSections.medium && (
+            {expandedSections.moderate && (
               <div className="space-y-2 pl-2">
-                {groupedLocations.medium.map((location) => (
+                {groupedLocations.moderate.map((location) => (
                   <SparklineCard
                     key={location.name}
                     locationName={location.name}

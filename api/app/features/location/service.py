@@ -17,11 +17,11 @@ def calculate_flood_risk(river_level: float) -> str:
     elif river_level >= 3.6:
         return "HIGH"        # Above average flood level (3.824m) 
     elif river_level >= 3.0:
-        return "MEDIUM"      # Flood threshold - where flood events begin
+        return "MODERATE"    # Flood threshold - where flood events begin
     elif river_level >= 2.7:
-        return "ELEVATED"    # Approaching flood threshold
+        return "LOW"         # Approaching flood threshold
     else:
-        return "LOW"         # Normal levels (2.200m to 2.700m)
+        return "SAFE"        # Normal levels (2.200m to 2.700m)
 
 
 def generate_contextual_posts(location: str, sentiment: float, conditions: dict) -> List[str]:
@@ -132,7 +132,7 @@ def get_location_timeline_data(session: Session, location_name: str, minutes: in
         .all()
 
 
-def generate_system_alerts(session: Session) -> List[Dict[str, str]]:
+def generate_system_alerts(session: Session) -> List[Dict[str, Any]]:
     """Generate system alerts based on current conditions"""
     alerts = []
     locations = get_all_locations(session)
@@ -141,12 +141,14 @@ def generate_system_alerts(session: Session) -> List[Dict[str, str]]:
         river_data = get_latest_river_data(session, location.name)
         if river_data:
             risk = calculate_flood_risk(river_data.river_level_m)
-            if risk in ["ELEVATED", "MEDIUM", "HIGH", "CRITICAL"]:
+            if risk in ["LOW", "MODERATE", "HIGH", "CRITICAL"]:
                 alerts.append({
                     "level": risk.lower(),
                     "location": location.name,
                     "message": f"{risk} flood risk in {location.name} - River level: {river_data.river_level_m}m",
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "river_level": river_data.river_level_m,
+                    "change_rate": river_data.change_in_level_m
                 })
     
     return alerts

@@ -15,8 +15,10 @@ import { Route as MapRouteImport } from './routes/map_'
 import { Route as dashboardRouteRouteImport } from './routes/(dashboard)/route'
 import { Route as dashboardIndexRouteImport } from './routes/(dashboard)/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
+import { Route as dashboardTestRouteImport } from './routes/(dashboard)/test'
 import { Route as dashboardTeamRouteImport } from './routes/(dashboard)/team'
 import { Route as dashboardLearnRouteImport } from './routes/(dashboard)/learn'
+import { Route as dashboardAnalyticsRouteImport } from './routes/(dashboard)/analytics'
 import { Route as dashboardAboutRouteImport } from './routes/(dashboard)/about'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo.start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo.start.api-request'
@@ -44,6 +46,11 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
+const dashboardTestRoute = dashboardTestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => dashboardRouteRoute,
+} as any)
 const dashboardTeamRoute = dashboardTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -52,6 +59,11 @@ const dashboardTeamRoute = dashboardTeamRouteImport.update({
 const dashboardLearnRoute = dashboardLearnRouteImport.update({
   id: '/learn',
   path: '/learn',
+  getParentRoute: () => dashboardRouteRoute,
+} as any)
+const dashboardAnalyticsRoute = dashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => dashboardRouteRoute,
 } as any)
 const dashboardAboutRoute = dashboardAboutRouteImport.update({
@@ -84,8 +96,10 @@ export interface FileRoutesByFullPath {
   '/': typeof dashboardIndexRoute
   '/map': typeof MapRoute
   '/about': typeof dashboardAboutRoute
+  '/analytics': typeof dashboardAnalyticsRoute
   '/learn': typeof dashboardLearnRoute
   '/team': typeof dashboardTeamRoute
+  '/test': typeof dashboardTestRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -93,8 +107,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/map': typeof MapRoute
   '/about': typeof dashboardAboutRoute
+  '/analytics': typeof dashboardAnalyticsRoute
   '/learn': typeof dashboardLearnRoute
   '/team': typeof dashboardTeamRoute
+  '/test': typeof dashboardTestRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/': typeof dashboardIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
@@ -105,8 +121,10 @@ export interface FileRoutesById {
   '/(dashboard)': typeof dashboardRouteRouteWithChildren
   '/map_': typeof MapRoute
   '/(dashboard)/about': typeof dashboardAboutRoute
+  '/(dashboard)/analytics': typeof dashboardAnalyticsRoute
   '/(dashboard)/learn': typeof dashboardLearnRoute
   '/(dashboard)/team': typeof dashboardTeamRoute
+  '/(dashboard)/test': typeof dashboardTestRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/(dashboard)/': typeof dashboardIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
@@ -118,8 +136,10 @@ export interface FileRouteTypes {
     | '/'
     | '/map'
     | '/about'
+    | '/analytics'
     | '/learn'
     | '/team'
+    | '/test'
     | '/demo/tanstack-query'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -127,8 +147,10 @@ export interface FileRouteTypes {
   to:
     | '/map'
     | '/about'
+    | '/analytics'
     | '/learn'
     | '/team'
+    | '/test'
     | '/demo/tanstack-query'
     | '/'
     | '/demo/start/api-request'
@@ -138,8 +160,10 @@ export interface FileRouteTypes {
     | '/(dashboard)'
     | '/map_'
     | '/(dashboard)/about'
+    | '/(dashboard)/analytics'
     | '/(dashboard)/learn'
     | '/(dashboard)/team'
+    | '/(dashboard)/test'
     | '/demo/tanstack-query'
     | '/(dashboard)/'
     | '/demo/start/api-request'
@@ -209,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(dashboard)/test': {
+      id: '/(dashboard)/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof dashboardTestRouteImport
+      parentRoute: typeof dashboardRouteRoute
+    }
     '/(dashboard)/team': {
       id: '/(dashboard)/team'
       path: '/team'
@@ -221,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn'
       preLoaderRoute: typeof dashboardLearnRouteImport
+      parentRoute: typeof dashboardRouteRoute
+    }
+    '/(dashboard)/analytics': {
+      id: '/(dashboard)/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof dashboardAnalyticsRouteImport
       parentRoute: typeof dashboardRouteRoute
     }
     '/(dashboard)/about': {
@@ -267,15 +305,19 @@ declare module '@tanstack/react-start/server' {
 
 interface dashboardRouteRouteChildren {
   dashboardAboutRoute: typeof dashboardAboutRoute
+  dashboardAnalyticsRoute: typeof dashboardAnalyticsRoute
   dashboardLearnRoute: typeof dashboardLearnRoute
   dashboardTeamRoute: typeof dashboardTeamRoute
+  dashboardTestRoute: typeof dashboardTestRoute
   dashboardIndexRoute: typeof dashboardIndexRoute
 }
 
 const dashboardRouteRouteChildren: dashboardRouteRouteChildren = {
   dashboardAboutRoute: dashboardAboutRoute,
+  dashboardAnalyticsRoute: dashboardAnalyticsRoute,
   dashboardLearnRoute: dashboardLearnRoute,
   dashboardTeamRoute: dashboardTeamRoute,
+  dashboardTestRoute: dashboardTestRoute,
   dashboardIndexRoute: dashboardIndexRoute,
 }
 

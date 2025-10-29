@@ -9,7 +9,7 @@ import { useLocationHistory } from '@/lib/hooks/useApiData'
 
 interface SparklineCardProps {
   locationName: string
-  riskLevel: 'LOW' | 'ELEVATED' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  riskLevel: 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL'
   currentValue: number
   changeRate: number
   onSelect?: () => void
