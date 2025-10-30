@@ -1,10 +1,17 @@
 import { useState } from "react";
+// We need to import React.FC for the function signature update
+import React from 'react'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, ComposedChart } from "recharts";
 import { TrendingUp, TrendingDown, Download, Maximize2, MapPin, Clock } from "lucide-react";
+
+// 1. Define the props interface
+interface DataAnalyticsProps {
+  onForecastClick: (location: string) => void;
+}
 
 // Mock data for the past 7 days
 const rainfallData = [
@@ -47,7 +54,8 @@ const humidityData = [
   { date: "Sun", humidity: 70 },
 ];
 
-const DataAnalytics = () => {
+// 2. Update the component signature to accept the props
+const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
   const [timeRange, setTimeRange] = useState("7d");
   const [location, setLocation] = useState("caroni");
 
@@ -155,9 +163,20 @@ const DataAnalytics = () => {
                 <CardTitle>Rainfall</CardTitle>
                 <CardDescription>7-day rainfall measurements (mm)</CardDescription>
               </div>
-              <Button variant="ghost" size="sm">
-                <Maximize2 className="h-4 w-4" />
-              </Button>
+              {/* 3. NEW: Button to trigger the forecast modal using the current location */}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onForecastClick(location)} // <-- Call the prop function
+                >
+                   View Forecast
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </div>
+              {/* END NEW */}
             </div>
             <div className="flex gap-4 mt-4">
               <div>

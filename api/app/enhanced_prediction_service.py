@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, Tuple, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from app.models import Location, RiverLevel, Weather, RiverPrediction
+from app.models import Location, RiverLevel, Weather, RiverPrediction, WeekForecast, simulate_7_day_forecast
 
 
 # Configuration constants
@@ -380,3 +380,95 @@ def cleanup_old_predictions(session: Session, hours_to_keep: int = 48) -> None:
     ).delete()
     
     session.commit()
+
+def generate_week_forecast_for_location(
+    session: Session,
+    location_id: int,
+    base_daily_mm: float,
+    start_date: Optional[datetime] = None,
+    base_conf: float = 0.9,
+    sentiment: float = 0.0,
+) -> Any:
+    location = session.query(Location).filter(Location.id == location_id).first()
+    if not location:
+        raise ValueError(f"Location id {location_id} not found")
+
+    if start_date is None:
+        start_date = datetime.now(timezone.utc)
+    elif start_date.tzinfo is None:
+        start_date = start_date.replace(tzinfo=timezone.utc)
+
+    forecast_resp = simulate_7_day_forecast(
+        base_daily_mm=base_daily_mm,
+        base_conf=base_conf,
+        sentiment=sentiment,
+        days=7,
+        start_date=start_date,
+        location=location.name,
+        baseline={"source": "simulator", "location_id": location_id, "base_daily_mm": base_daily_mm}
+    )
+    return forecast_resp
+
+def store_week_forecast(session: Session, forecast_response: Any) -> None:
+    location_name = forecast_response.location
+    gen_at = forecast_response.generated_at
+
+    # best-effort: try to resolve location_id but upsert keys by (location, date) — name-based
+    loc = session.query(Location).filter(Location.name == location_name).first()
+    location_id = loc.id if loc else None
+
+    for day in forecast_response.forecast:
+        day_date = day.date.date() if hasattr(day.date, "date") else day.date
+
+        existing = session.query(WeekForecast).filter(
+            WeekForecast.location == location_name,
+            WeekForecast.date == day_date
+        ).first()
+
+        if existing:
+            existing.generated_at = gen_at
+            existing.rainfall_mm = int(day.rainfall_mm)
+            existing.risk = day.risk
+            existing.confidence = float(day.confidence)
+            existing.meta = forecast_response.baseline
+        else:
+            new_row = WeekForecast(
+                location=location_name,
+                date=day_date,
+                generated_at=gen_at,
+                rainfall_mm=int(day.rainfall_mm),
+                risk=day.risk,
+                confidence=float(day.confidence),
+                meta=forecast_response.baseline
+            )
+            session.add(new_row)
+
+    session.commit()
+
+def get_stored_week_forecast(session: Session, location_id: int, since_days: int = 14) -> List[Dict]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=since_days)
+    location = session.query(Location).filter(Location.id == location_id).first()
+    if not location:
+        return []
+
+    rows = session.query(WeekForecast).filter(
+        WeekForecast.location == location.name,
+        WeekForecast.generated_at >= cutoff
+    ).order_by(WeekForecast.date.asc()).all()
+
+    # if your WeekForecast model has to_dict(), use it; otherwise build dicts inline:
+    result = []
+    for r in rows:
+        item = {
+            "id": getattr(r, "id", None),
+            "location": getattr(r, "location", None),
+            "date": getattr(r, "date").isoformat() if getattr(r, "date", None) is not None else None,
+            "generated_at": getattr(r, "generated_at").isoformat() if getattr(r, "generated_at", None) is not None else None,
+            "rainfall_mm": getattr(r, "rainfall_mm", None),
+            "risk": getattr(r, "risk", None),
+            "confidence": getattr(r, "confidence", None),
+            "meta": getattr(r, "meta", None),
+        }
+        result.append(item)
+
+    return result
