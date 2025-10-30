@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Accordion,
   AccordionContent,
@@ -19,16 +20,17 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  BarChart3,
+  Lock,
 } from 'lucide-react'
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  Popup,
-  Polygon,
-} from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import { useLocations, useRealTimeConditions } from '@/lib/hooks/useApiData'
-import { mapApiRiskToComponent, getRiskColor } from '@/lib/utils/riskMapping'
+import {
+  mapApiRiskToComponent,
+  getRiskColor,
+  getRiskHexColor,
+} from '@/lib/utils/riskMapping'
+import { LoginModal } from '@/components/login-modal'
 import { useState } from 'react'
 import type { RealTimeConditions } from '@/lib/api/types'
 import 'leaflet/dist/leaflet.css'
@@ -158,6 +160,7 @@ function LocationDetails({ realTimeData }: LocationDetailsProps) {
 
 const RiskMap = () => {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
+  const [loginOpen, setLoginOpen] = useState(false)
 
   // Fetch comprehensive system update (includes more data than just locations)
   const { data: systemData, isLoading, error } = useLocations()
@@ -178,44 +181,14 @@ const RiskMap = () => {
       sensorId: location.sensor_id,
     })) || []
 
-  const getRiskColor = (risk: string) => {
-    const colors = {
-      critical: 'bg-critical text-critical-foreground',
-      'high-risk': 'bg-high-risk text-high-risk-foreground',
-      moderate: 'bg-moderate text-moderate-foreground',
-      'low-risk': 'bg-low-risk text-low-risk-foreground',
-      safe: 'bg-safe text-safe-foreground',
-    }
-    return colors[risk as keyof typeof colors] || ''
-  }
-
-  const getRiskHexColor = (risk: string) => {
-    const colors = {
-      critical: '#ef4444',
-      'high-risk': '#f97316',
-      moderate: '#eab308',
-      'low-risk': '#84cc16',
-      safe: '#22c55e',
-    }
-    return colors[risk as keyof typeof colors] || '#6b7280'
-  }
-
-  // Helper component to ensure Leaflet coordinates are in [lat, lng] format
-  const convertToLatLng = (coords: [number, number][]): [number, number][] => {
-    // Leaflet uses [lat, lng], our data is [lng, lat], so we need to swap
-    return coords.map((coord) => [coord[1], coord[0]] as [number, number])
-  }
-
   return (
     <section className="py-16 px-6">
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
       <div className="container mx-auto">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Map Visualization */}
           <div className="col-span-1">
-            <Card
-              className="shadow-lg flex flex-col"
-              
-            >
+            <Card className="shadow-lg flex flex-col">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-primary" />
@@ -361,7 +334,7 @@ const RiskMap = () => {
           <div className="space-y-6">
             <Card
               className="shadow-lg flex flex-col"
-              style={{ height: '650px' }}
+              style={{ height: '685px' }}
             >
               <CardHeader>
                 <CardTitle>Current Risk Zones</CardTitle>
@@ -428,6 +401,35 @@ const RiskMap = () => {
             </Card>
           </div>
         </div>
+          {/* Advanced Access Banner */}
+            <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 mt-10">
+              <CardContent className="pt-6 text-center">
+                <div className="flex items-start gap-4">
+                  {/* <div className="flex-shrink-0">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <BarChart3 className="h-6 w-6 text-primary" />
+                    </div>
+                  </div> */}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">
+                      Researchers & Disaster Risk Professionals
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Access advanced analytics, real-time predictions,
+                      historical data analysis, and comprehensive flood
+                      monitoring dashboards designed for professionals.
+                    </p>
+                    <Button
+                      onClick={() => setLoginOpen(true)}
+                      className="gap-2"
+                    >
+                      <Lock className="h-4 w-4" />
+                      Access Advanced Dashboard
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
       </div>
     </section>
   )

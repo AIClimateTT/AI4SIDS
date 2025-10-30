@@ -108,15 +108,18 @@ export const dataTransformers = {
      */
     getRiskLevelColor: (riskLevel: string): string => {
         switch (riskLevel.toLowerCase()) {
+            case 'safe':
+                return '#22c55e'; // Green (safe)
             case 'low':
-                return '#10B981'; // Green
+                return '#84cc16'; // Lime (low-risk)
             case 'elevated':
             case 'medium':
-                return '#F59E0B'; // Yellow/Orange
+            case 'moderate':
+                return '#eab308'; // Yellow (moderate)
             case 'high':
-                return '#F97316'; // Orange
+                return '#f97316'; // Orange (high-risk)
             case 'critical':
-                return '#EF4444'; // Red
+                return '#ef4444'; // Red (critical)
             default:
                 return '#6B7280'; // Gray
         }
@@ -129,31 +132,39 @@ export const dataTransformers = {
         switch (level.toLowerCase()) {
             case 'critical':
                 return {
-                    bgColor: 'bg-red-100',
-                    textColor: 'text-red-800',
-                    borderColor: 'border-red-300',
+                    bgColor: 'bg-critical/10',
+                    textColor: 'text-critical',
+                    borderColor: 'border-critical/30',
                     icon: '🔴'
                 };
             case 'high':
                 return {
-                    bgColor: 'bg-orange-100',
-                    textColor: 'text-orange-800',
-                    borderColor: 'border-orange-300',
+                    bgColor: 'bg-high-risk/10',
+                    textColor: 'text-high-risk',
+                    borderColor: 'border-high-risk/30',
                     icon: '🟠'
                 };
             case 'medium':
+            case 'moderate':
                 return {
-                    bgColor: 'bg-yellow-100',
-                    textColor: 'text-yellow-800',
-                    borderColor: 'border-yellow-300',
+                    bgColor: 'bg-moderate/10',
+                    textColor: 'text-moderate',
+                    borderColor: 'border-moderate/30',
                     icon: '🟡'
                 };
-            case 'elevated':
+            case 'low':
                 return {
-                    bgColor: 'bg-blue-100',
-                    textColor: 'text-blue-800',
-                    borderColor: 'border-blue-300',
-                    icon: '🔵'
+                    bgColor: 'bg-low-risk/10',
+                    textColor: 'text-low-risk',
+                    borderColor: 'border-low-risk/30',
+                    icon: '�'
+                };
+            case 'safe':
+                return {
+                    bgColor: 'bg-safe/10',
+                    textColor: 'text-safe',
+                    borderColor: 'border-safe/30',
+                    icon: '�'
                 };
             default:
                 return {

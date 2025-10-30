@@ -3,9 +3,7 @@ import Header from '@/components/Header'
 
 import Footer  from '@/components/Footer'
 
-export const Route = createFileRoute('/(dashboard)')({
-  component: RouteComponent,
-})
+
 
 function RouteComponent() {
   return (

@@ -2,9 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
-export const Route = createFileRoute('/(dashboard)/learn')({
-  component: RouteComponent,
-})
+
 
 function RouteComponent() {
   return (

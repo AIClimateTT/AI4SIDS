@@ -5,6 +5,7 @@ import type { MapComponentRef } from '@/components/map'
 import type { LocationSummary } from '@/lib/api/types'
 
 import { ChatWithButton } from '@/components/chat-interface'
+import { AIChatBotWithButton } from '@/components/AIChatbot'
 import { LocationDetailSheet } from '@/components/location-detail-sheet'
 import SidebarWithSparklines from '@/components/sidebar-with-sparklines'
 
@@ -68,8 +69,7 @@ function RouteComponent() {
 
           {/* Chat with much higher z-index */}
           <div className="absolute top-4 right-4" style={{ zIndex: 1000 }}>
-        
-            <ChatWithButton selectedLocation={selectedLocation} />
+            <AIChatBotWithButton />
           </div>
         </div>
       </div>

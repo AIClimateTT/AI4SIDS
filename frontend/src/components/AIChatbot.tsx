@@ -121,7 +121,7 @@ const AIChatbot = () => {
   const suggestedQuestions = getContextualQuestions(null)
 
   return (
-    <section className="py-16 px-6 bg-muted/30">
+    <section>
       <div className="container mx-auto ">
         <Card className="shadow-lg">
           <CardHeader>
@@ -281,3 +281,85 @@ const AIChatbot = () => {
 }
 
 export default AIChatbot
+
+
+export const AIChatBotWithButton = () => {
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+    if (isOpen) {
+      // When closing, also collapse if expanded
+      setIsExpanded(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Chat Interface - positioned bottom right when open */}
+      {isOpen && (
+        <div 
+          className={`fixed ${
+            isExpanded 
+              ? 'inset-4' 
+              : 'bottom-24 right-4'
+          } z-50 transition-all duration-300 max-w-xl`}
+        >
+          <AIChatbot
+            
+          />
+        </div>
+      )}
+
+      {/* Floating Action Button */}
+      <button
+        onClick={handleToggle}
+        className={`fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300 ${
+          isOpen 
+            ? 'bg-red-600 hover:bg-red-700' 
+            : 'bg-blue-600 hover:bg-blue-700'
+        } text-white focus:outline-none focus:ring-4 focus:ring-blue-300`}
+        aria-label={isOpen ? 'Close chat' : 'Open chat'}
+      >
+        {isOpen ? (
+          // Close Icon (X)
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-6 w-6" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          // Chat Icon
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-6 w-6" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            strokeWidth={2}
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" 
+            />
+          </svg>
+        )}
+      </button>
+
+      {/* Notification Badge (optional - for unread messages) */}
+      {!isOpen && false && ( // Set to true to show badge
+        <div className="fixed bottom-16 right-16 z-50 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+          3
+        </div>
+      )}
+    </>
+  );
+};
