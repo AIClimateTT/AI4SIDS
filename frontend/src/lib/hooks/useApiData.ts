@@ -9,6 +9,7 @@ import type {
     ApiStatus
 } from '../api/types';
 import type { FloodLocation } from '@/types';
+import {env} from '@/lib/env/server';
 
 // Query keys for consistent caching
 export const queryKeys = {
@@ -26,6 +27,10 @@ export const queryKeys = {
 // Configuration constants
 // === VIDEO RECORDING MODE ===
 const REAL_TIME_REFETCH_INTERVAL = 1 * 1000; // 1 second to match API cycle (fast for demo)
+const STALE_TIME_DEMO = 2 * 1000; // 2 seconds stale time for demo mode
+// === PRODUCTION MODE ===
+// const REAL_TIME_REFETCH_INTERVAL = 15 * 1000; // 15 seconds to match API cycle
+const STALE_TIME_PROD = 15 * 1000; // 15 seconds stale time for production
 const SYSTEM_UPDATE_REFETCH_INTERVAL = 1 * 1000; // 1 second
 const LOCATIONS_REFETCH_INTERVAL = 1 * 1000; // 1 second for demo
 const ANALYTICS_REFETCH_INTERVAL = 1 * 1000; // 1 second for analytics data
@@ -62,7 +67,7 @@ export function useLocations(): UseQueryResult<LocationsResponse, Error> {
         queryFn: apiService.getLocations,
         refetchInterval: LOCATIONS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Consider data stale after 2 seconds (demo mode)
+        staleTime: STALE_TIME_DEMO,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
@@ -80,7 +85,7 @@ export function useFloodLocations(): UseQueryResult<FloodLocation[], Error> {
         },
         refetchInterval: LOCATIONS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
+        staleTime: STALE_TIME_DEMO,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
@@ -99,7 +104,7 @@ export function useRealTimeConditions(
         enabled: enabled && !!location,
         refetchInterval: REAL_TIME_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
+        staleTime: STALE_TIME_DEMO,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
@@ -119,7 +124,7 @@ export function useLocationTimeline(
         enabled: enabled && !!location,
         refetchInterval: REAL_TIME_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
+        staleTime: STALE_TIME_DEMO,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
@@ -139,7 +144,7 @@ export function useLocationHistory(
         enabled: enabled && !!location,
         refetchInterval: REAL_TIME_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
+        staleTime: STALE_TIME_DEMO,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
@@ -154,7 +159,7 @@ export function useApiStatus(): UseQueryResult<ApiStatus, Error> {
         queryFn: apiService.getApiStatus,
         refetchInterval: 3 * 1000, // Check API status every 3 seconds (demo mode)
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
+        staleTime: STALE_TIME_DEMO,
         retry: 2,
         retryDelay: 5000,
     });
@@ -313,7 +318,7 @@ export function useLocationAnalytics(
         queryFn: async () => {
             if (!locationName) throw new Error('No location name provided');
             const response = await fetch(
-                `http://localhost:8000/api/analytics/by-name/${encodeURIComponent(locationName)}?hours_back=${hoursBack}`
+                `${env.VITE_API_URL}/api/analytics/by-name/${encodeURIComponent(locationName)}?hours_back=${hoursBack}`
             );
             if (!response.ok) {
                 throw new Error(`Failed to fetch analytics: ${response.statusText}`);
@@ -342,7 +347,7 @@ export function useLocationAnalyticsById(
         queryFn: async () => {
             if (!locationId) throw new Error('No location ID provided');
             const response = await fetch(
-                `http://localhost:8000/api/analytics/${locationId}?hours_back=${hoursBack}`
+                `${env.VITE_API_URL}/api/analytics/${locationId}?hours_back=${hoursBack}`
             );
             if (!response.ok) {
                 throw new Error(`Failed to fetch analytics: ${response.statusText}`);
@@ -365,7 +370,7 @@ export function usePredictionStatus(): UseQueryResult<PredictionStatusData, Erro
     return useQuery({
         queryKey: queryKeys.predictionStatus,
         queryFn: async () => {
-            const response = await fetch('http://localhost:8000/api/predictions/status');
+            const response = await fetch('${env.VITE_API_URL}/api/predictions/status');
             if (!response.ok) {
                 throw new Error(`Failed to fetch prediction status: ${response.statusText}`);
             }
@@ -386,7 +391,7 @@ export function useGeneratePredictions() {
     return {
         generateByName: async (locationName: string): Promise<PredictionGenerationResult> => {
             const response = await fetch(
-                `http://localhost:8000/api/analytics/by-name/${encodeURIComponent(locationName)}/predictions`,
+                `${env.VITE_API_URL}/api/analytics/by-name/${encodeURIComponent(locationName)}/predictions`,
                 { method: 'POST' }
             );
             if (!response.ok) {
@@ -396,7 +401,7 @@ export function useGeneratePredictions() {
         },
         generateById: async (locationId: number): Promise<PredictionGenerationResult> => {
             const response = await fetch(
-                `http://localhost:8000/api/analytics/${locationId}/predictions`,
+                `${env.VITE_API_URL}/api/analytics/${locationId}/predictions`,
                 { method: 'POST' }
             );
             if (!response.ok) {
@@ -406,7 +411,7 @@ export function useGeneratePredictions() {
         },
         triggerGlobal: async (): Promise<{ success: boolean; message: string }> => {
             const response = await fetch(
-                'http://localhost:8000/api/predictions/generate',
+                '${env.VITE_API_URL}/api/predictions/generate',
                 { method: 'POST' }
             );
             if (!response.ok) {
