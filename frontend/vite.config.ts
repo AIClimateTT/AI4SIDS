@@ -13,9 +13,7 @@ const config = defineConfig({
     }),
     tailwindcss(),
     netlify(), // ← add this
-    tanstackStart({
-      customViteReactPlugin: true,
-    }),
+    tanstackStart(),
     viteReact(),
   ],
 })
