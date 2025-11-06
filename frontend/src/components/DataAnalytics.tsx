@@ -56,7 +56,7 @@ const humidityData = [
 
 // 2. Update the component signature to accept the props
 const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
-  const [timeRange, setTimeRange] = useState("7d");
+  const [timeRange, setTimeRange] = useState("realtime");
   const [location, setLocation] = useState("caroni");
 
   const isRealTime = timeRange === 'realtime'
