@@ -15,49 +15,51 @@ interface DataAnalyticsProps {
 
 // Mock data for the past 7 days
 const rainfallData = [
-  { date: "Mon", value: 12 },
-  { date: "Tue", value: 25 },
-  { date: "Wed", value: 45 },
-  { date: "Thu", value: 38 },
-  { date: "Fri", value: 52 },
-  { date: "Sat", value: 28 },
-  { date: "Sun", value: 15 },
-];
+  { date: 'Mon', value: 12 },
+  { date: 'Tue', value: 25 },
+  { date: 'Wed', value: 45 },
+  { date: 'Thu', value: 38 },
+  { date: 'Fri', value: 52 },
+  { date: 'Sat', value: 28 },
+  { date: 'Sun', value: 15 },
+]
 
 const riverGaugeData = [
-  { date: "Mon", level: 2.3 },
-  { date: "Tue", level: 2.8 },
-  { date: "Wed", level: 3.5 },
-  { date: "Thu", level: 3.2 },
-  { date: "Fri", level: 4.1 },
-  { date: "Sat", level: 3.6 },
-  { date: "Sun", level: 2.9 },
-];
+  { date: 'Mon', level: 2.3 },
+  { date: 'Tue', level: 2.8 },
+  { date: 'Wed', level: 3.5 },
+  { date: 'Thu', level: 3.2 },
+  { date: 'Fri', level: 4.1 },
+  { date: 'Sat', level: 3.6 },
+  { date: 'Sun', level: 2.9 },
+]
 
 const temperatureData = [
-  { date: "Mon", temp: 28 },
-  { date: "Tue", temp: 29 },
-  { date: "Wed", temp: 27 },
-  { date: "Thu", temp: 30 },
-  { date: "Fri", temp: 31 },
-  { date: "Sat", temp: 29 },
-  { date: "Sun", temp: 28 },
-];
+  { date: 'Mon', temp: 28 },
+  { date: 'Tue', temp: 29 },
+  { date: 'Wed', temp: 27 },
+  { date: 'Thu', temp: 30 },
+  { date: 'Fri', temp: 31 },
+  { date: 'Sat', temp: 29 },
+  { date: 'Sun', temp: 28 },
+]
 
 const humidityData = [
-  { date: "Mon", humidity: 65 },
-  { date: "Tue", humidity: 72 },
-  { date: "Wed", humidity: 78 },
-  { date: "Thu", humidity: 68 },
-  { date: "Fri", humidity: 82 },
-  { date: "Sat", humidity: 75 },
-  { date: "Sun", humidity: 70 },
-];
+  { date: 'Mon', humidity: 65 },
+  { date: 'Tue', humidity: 72 },
+  { date: 'Wed', humidity: 78 },
+  { date: 'Thu', humidity: 68 },
+  { date: 'Fri', humidity: 82 },
+  { date: 'Sat', humidity: 75 },
+  { date: 'Sun', humidity: 70 },
+]
 
 // 2. Update the component signature to accept the props
 const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
   const [timeRange, setTimeRange] = useState("7d");
   const [location, setLocation] = useState("caroni");
+
+  const isRealTime = timeRange === 'realtime'
 
   // Calculate statistics
   const rainfallStats = {
@@ -66,7 +68,7 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
     max: 52,
     min: 12,
     trend: -28.8,
-  };
+  }
 
   const riverStats = {
     current: 2.9,
@@ -74,7 +76,7 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
     max: 4.1,
     min: 2.3,
     trend: 8.2,
-  };
+  }
 
   const tempStats = {
     current: 28,
@@ -82,7 +84,7 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
     max: 31,
     min: 27,
     trend: -3.4,
-  };
+  }
 
   const humidityStats = {
     current: 70,
@@ -90,18 +92,18 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
     max: 82,
     min: 65,
     trend: 2.1,
-  };
+  }
 
   // Combined data for rainfall and river levels
   const combinedData = [
-    { date: "Mon", rainfall: 12, riverLevel: 2.3 },
-    { date: "Tue", rainfall: 25, riverLevel: 2.8 },
-    { date: "Wed", rainfall: 45, riverLevel: 3.5 },
-    { date: "Thu", rainfall: 38, riverLevel: 3.2 },
-    { date: "Fri", rainfall: 52, riverLevel: 4.1 },
-    { date: "Sat", rainfall: 28, riverLevel: 3.6 },
-    { date: "Sun", rainfall: 15, riverLevel: 2.9 },
-  ];
+    { date: 'Mon', rainfall: 12, riverLevel: 2.3 },
+    { date: 'Tue', rainfall: 25, riverLevel: 2.8 },
+    { date: 'Wed', rainfall: 45, riverLevel: 3.5 },
+    { date: 'Thu', rainfall: 38, riverLevel: 3.2 },
+    { date: 'Fri', rainfall: 52, riverLevel: 4.1 },
+    { date: 'Sat', rainfall: 28, riverLevel: 3.6 },
+    { date: 'Sun', rainfall: 15, riverLevel: 2.9 },
+  ]
 
   return (
     <div className="container py-12 px-6 mx-auto">
@@ -121,10 +123,14 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="caroni">Caroni Station</SelectItem>
-              <SelectItem value="arima">Arima Station</SelectItem>
-              <SelectItem value="diego">Diego Martin</SelectItem>
-              <SelectItem value="point">Point Fortin</SelectItem>
+              <SelectItem value="caroni">Caroni</SelectItem>
+              <SelectItem value="arima">St.Augustine</SelectItem>
+              <SelectItem value="diego">Chaguanas</SelectItem>
+              <SelectItem value="point">Cunupia</SelectItem>
+              <SelectItem value="sthelena">St. Helena</SelectItem>
+              <SelectItem value="piarco">Piarco</SelectItem>
+              <SelectItem value="laslomas">Las Lomas</SelectItem>
+              <SelectItem value="kellyvillage">Kelly Village</SelectItem>
             </SelectContent>
           </Select>
 
@@ -134,6 +140,7 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="realtime">Real-time</SelectItem>
               <SelectItem value="24h">Last 24 Hours</SelectItem>
               <SelectItem value="7d">Last 7 Days</SelectItem>
               <SelectItem value="30d">Last 30 Days</SelectItem>
@@ -143,10 +150,24 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
         </div>
 
         <div className="flex gap-2">
-          <Badge variant="outline" className="animate-pulse-subtle">
-            <div className="h-2 w-2 rounded-full bg-safe mr-2" />
-            Live • Updated 2 min ago
-          </Badge>
+          {isRealTime ? (
+            <Badge variant="outline" className="animate-pulse-subtle">
+              <div className="h-2 w-2 rounded-full bg-safe mr-2" />
+              Live • Updated 2 min ago
+            </Badge>
+          ) : (
+            <Badge variant="outline">
+              <Clock className="h-3 w-3 mr-2" />
+              Historical Data •{' '}
+              {timeRange === '24h'
+                ? 'Last 24 Hours'
+                : timeRange === '7d'
+                  ? 'Last 7 Days'
+                  : timeRange === '30d'
+                    ? 'Last 30 Days'
+                    : 'Custom Range'}
+            </Badge>
+          )}
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -161,7 +182,9 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle>Rainfall</CardTitle>
-                <CardDescription>7-day rainfall measurements (mm)</CardDescription>
+                <CardDescription>
+                  7-day rainfall measurements (mm)
+                </CardDescription>
               </div>
               {/* 3. NEW: Button to trigger the forecast modal using the current location */}
               <div className="flex gap-2">
@@ -180,27 +203,37 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             </div>
             <div className="flex gap-4 mt-4">
               <div>
-                <div className="text-2xl font-bold">{rainfallStats.current}mm</div>
+                <div className="text-2xl font-bold">
+                  {rainfallStats.current}mm
+                </div>
                 <div className="text-xs text-muted-foreground">Current</div>
               </div>
               <div>
-                <div className="text-sm font-semibold">{rainfallStats.avg}mm</div>
+                <div className="text-sm font-semibold">
+                  {rainfallStats.avg}mm
+                </div>
                 <div className="text-xs text-muted-foreground">Average</div>
               </div>
               <div>
-                <div className="text-sm font-semibold">{rainfallStats.max}mm</div>
+                <div className="text-sm font-semibold">
+                  {rainfallStats.max}mm
+                </div>
                 <div className="text-xs text-muted-foreground">Peak</div>
               </div>
               <div className="flex items-center gap-1">
                 {rainfallStats.trend < 0 ? (
                   <>
                     <TrendingDown className="h-4 w-4 text-safe" />
-                    <span className="text-sm font-semibold text-safe">{Math.abs(rainfallStats.trend)}%</span>
+                    <span className="text-sm font-semibold text-safe">
+                      {Math.abs(rainfallStats.trend)}%
+                    </span>
                   </>
                 ) : (
                   <>
                     <TrendingUp className="h-4 w-4 text-high-risk" />
-                    <span className="text-sm font-semibold text-high-risk">+{rainfallStats.trend}%</span>
+                    <span className="text-sm font-semibold text-high-risk">
+                      +{rainfallStats.trend}%
+                    </span>
                   </>
                 )}
               </div>
@@ -210,26 +243,53 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={rainfallData}>
                 <defs>
-                  <linearGradient id="rainfallGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  <linearGradient
+                    id="rainfallGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--primary)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--primary)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" opacity={0.3} />
-                <XAxis dataKey="date" className="text-xs" stroke="var(--muted-foreground)" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-border"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                />
                 <YAxis className="text-xs" stroke="var(--muted-foreground)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "var(--radius)"
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
                   }}
                 />
-                <ReferenceLine y={40} stroke="var(--color-high-risk)" strokeDasharray="3 3" label="Warning" />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="var(--primary)" 
+                <ReferenceLine
+                  y={40}
+                  stroke="var(--color-high-risk)"
+                  strokeDasharray="3 3"
+                  label="Warning"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="var(--primary)"
                   strokeWidth={2}
                   fill="url(#rainfallGradient)"
                   name="Rainfall (mm)"
@@ -245,7 +305,9 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle>River Gauge</CardTitle>
-                <CardDescription>7-day water level measurements (meters)</CardDescription>
+                <CardDescription>
+                  7-day water level measurements (meters)
+                </CardDescription>
               </div>
               <Button variant="ghost" size="sm">
                 <Maximize2 className="h-4 w-4" />
@@ -268,12 +330,16 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
                 {riverStats.trend < 0 ? (
                   <>
                     <TrendingDown className="h-4 w-4 text-safe" />
-                    <span className="text-sm font-semibold text-safe">{Math.abs(riverStats.trend)}%</span>
+                    <span className="text-sm font-semibold text-safe">
+                      {Math.abs(riverStats.trend)}%
+                    </span>
                   </>
                 ) : (
                   <>
                     <TrendingUp className="h-4 w-4 text-high-risk" />
-                    <span className="text-sm font-semibold text-high-risk">+{riverStats.trend}%</span>
+                    <span className="text-sm font-semibold text-high-risk">
+                      +{riverStats.trend}%
+                    </span>
                   </>
                 )}
               </div>
@@ -283,27 +349,63 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={riverGaugeData}>
                 <defs>
-                  <linearGradient id="riverGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-low-risk)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--color-low-risk)" stopOpacity={0}/>
+                  <linearGradient
+                    id="riverGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-low-risk)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-low-risk)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" opacity={0.3} />
-                <XAxis dataKey="date" className="text-xs" stroke="var(--muted-foreground)" />
-                <YAxis className="text-xs" stroke="var(--muted-foreground)" domain={[0, 5]} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "var(--radius)"
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-border"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                />
+                <YAxis
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                  domain={[0, 5]}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
                   }}
                 />
-                <ReferenceLine y={3.5} stroke="var(--color-moderate)" strokeDasharray="3 3" label="Alert" />
-                <ReferenceLine y={4.5} stroke="var(--color-critical)" strokeDasharray="3 3" label="Critical" />
-                <Area 
-                  type="monotone" 
-                  dataKey="level" 
-                  stroke="var(--color-low-risk)" 
+                <ReferenceLine
+                  y={3.5}
+                  stroke="var(--color-moderate)"
+                  strokeDasharray="3 3"
+                  label="Alert"
+                />
+                <ReferenceLine
+                  y={4.5}
+                  stroke="var(--color-critical)"
+                  strokeDasharray="3 3"
+                  label="Critical"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="level"
+                  stroke="var(--color-low-risk)"
                   strokeWidth={2}
                   fill="url(#riverGradient)"
                   name="Water Level (m)"
@@ -319,7 +421,9 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle>Temperature</CardTitle>
-                <CardDescription>7-day temperature readings (°C)</CardDescription>
+                <CardDescription>
+                  7-day temperature readings (°C)
+                </CardDescription>
               </div>
               <Button variant="ghost" size="sm">
                 <Maximize2 className="h-4 w-4" />
@@ -342,12 +446,16 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
                 {tempStats.trend < 0 ? (
                   <>
                     <TrendingDown className="h-4 w-4 text-safe" />
-                    <span className="text-sm font-semibold text-safe">{Math.abs(tempStats.trend)}%</span>
+                    <span className="text-sm font-semibold text-safe">
+                      {Math.abs(tempStats.trend)}%
+                    </span>
                   </>
                 ) : (
                   <>
                     <TrendingUp className="h-4 w-4 text-high-risk" />
-                    <span className="text-sm font-semibold text-high-risk">+{tempStats.trend}%</span>
+                    <span className="text-sm font-semibold text-high-risk">
+                      +{tempStats.trend}%
+                    </span>
                   </>
                 )}
               </div>
@@ -358,24 +466,44 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
               <AreaChart data={temperatureData}>
                 <defs>
                   <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-high-risk)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--color-high-risk)" stopOpacity={0}/>
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-high-risk)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-high-risk)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" opacity={0.3} />
-                <XAxis dataKey="date" className="text-xs" stroke="var(--muted-foreground)" />
-                <YAxis className="text-xs" stroke="var(--muted-foreground)" domain={[20, 35]} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "var(--radius)"
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-border"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                />
+                <YAxis
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                  domain={[20, 35]}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
                   }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="temp" 
-                  stroke="var(--color-high-risk)" 
+                <Area
+                  type="monotone"
+                  dataKey="temp"
+                  stroke="var(--color-high-risk)"
                   strokeWidth={2}
                   fill="url(#tempGradient)"
                   name="Temperature (°C)"
@@ -399,27 +527,37 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             </div>
             <div className="flex gap-4 mt-4">
               <div>
-                <div className="text-2xl font-bold">{humidityStats.current}%</div>
+                <div className="text-2xl font-bold">
+                  {humidityStats.current}%
+                </div>
                 <div className="text-xs text-muted-foreground">Current</div>
               </div>
               <div>
-                <div className="text-sm font-semibold">{humidityStats.avg}%</div>
+                <div className="text-sm font-semibold">
+                  {humidityStats.avg}%
+                </div>
                 <div className="text-xs text-muted-foreground">Average</div>
               </div>
               <div>
-                <div className="text-sm font-semibold">{humidityStats.max}%</div>
+                <div className="text-sm font-semibold">
+                  {humidityStats.max}%
+                </div>
                 <div className="text-xs text-muted-foreground">Peak</div>
               </div>
               <div className="flex items-center gap-1">
                 {humidityStats.trend < 0 ? (
                   <>
                     <TrendingDown className="h-4 w-4 text-safe" />
-                    <span className="text-sm font-semibold text-safe">{Math.abs(humidityStats.trend)}%</span>
+                    <span className="text-sm font-semibold text-safe">
+                      {Math.abs(humidityStats.trend)}%
+                    </span>
                   </>
                 ) : (
                   <>
                     <TrendingUp className="h-4 w-4 text-high-risk" />
-                    <span className="text-sm font-semibold text-high-risk">+{humidityStats.trend}%</span>
+                    <span className="text-sm font-semibold text-high-risk">
+                      +{humidityStats.trend}%
+                    </span>
                   </>
                 )}
               </div>
@@ -429,25 +567,51 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={humidityData}>
                 <defs>
-                  <linearGradient id="humidityGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
+                  <linearGradient
+                    id="humidityGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--accent)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--accent)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" opacity={0.3} />
-                <XAxis dataKey="date" className="text-xs" stroke="var(--muted-foreground)" />
-                <YAxis className="text-xs" stroke="var(--muted-foreground)" domain={[0, 100]} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "var(--radius)"
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-border"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                />
+                <YAxis
+                  className="text-xs"
+                  stroke="var(--muted-foreground)"
+                  domain={[0, 100]}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius)',
                   }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="humidity" 
-                  stroke="var(--accent)" 
+                <Area
+                  type="monotone"
+                  dataKey="humidity"
+                  stroke="var(--accent)"
                   strokeWidth={2}
                   fill="url(#humidityGradient)"
                   name="Humidity (%)"
@@ -464,7 +628,10 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
           <div className="flex items-start justify-between">
             <div>
               <CardTitle>Rainfall & River Level Correlation</CardTitle>
-              <CardDescription>Combined view showing the relationship between rainfall and water levels</CardDescription>
+              <CardDescription>
+                Combined view showing the relationship between rainfall and
+                water levels
+              </CardDescription>
             </div>
             <Button variant="ghost" size="sm">
               <Maximize2 className="h-4 w-4" />
@@ -475,31 +642,61 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
           <ResponsiveContainer width="100%" height={350}>
             <ComposedChart data={combinedData}>
               <defs>
-                <linearGradient id="combinedRainfallGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2}/>
-                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                <linearGradient
+                  id="combinedRainfallGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0.2}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--primary)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" opacity={0.3} />
-              <XAxis dataKey="date" className="text-xs" stroke="var(--muted-foreground)" />
-              <YAxis 
-                yAxisId="left" 
-                className="text-xs" 
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-border"
+                opacity={0.3}
+              />
+              <XAxis
+                dataKey="date"
+                className="text-xs"
+                stroke="var(--muted-foreground)"
+              />
+              <YAxis
+                yAxisId="left"
+                className="text-xs"
                 stroke="var(--primary)"
-                label={{ value: 'Rainfall (mm)', angle: -90, position: 'insideLeft' }}
+                label={{
+                  value: 'Rainfall (mm)',
+                  angle: -90,
+                  position: 'insideLeft',
+                }}
               />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                className="text-xs" 
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                className="text-xs"
                 stroke="var(--color-low-risk)"
-                label={{ value: 'Water Level (m)', angle: 90, position: 'insideRight' }}
+                label={{
+                  value: 'Water Level (m)',
+                  angle: 90,
+                  position: 'insideRight',
+                }}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius)"
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius)',
                 }}
               />
               <Legend />
@@ -519,14 +716,14 @@ const DataAnalytics: React.FC<DataAnalyticsProps> = ({ onForecastClick }) => {
                 stroke="var(--color-low-risk)"
                 strokeWidth={3}
                 name="River Level (m)"
-                dot={{ fill: "var(--color-low-risk)", r: 5 }}
+                dot={{ fill: 'var(--color-low-risk)', r: 5 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
 export default DataAnalytics;

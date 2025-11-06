@@ -26,8 +26,9 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
   }>({
     critical: true,
     high: true,
-    medium: false,
+    moderate: false,
     low: false,
+    safe: false,
   })
 
   // API data hooks
@@ -55,15 +56,16 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
       critical: locations.filter((loc) => loc.flood_risk === 'CRITICAL'),
       high: locations.filter((loc) => loc.flood_risk === 'HIGH'),
       moderate: locations.filter((loc) => loc.flood_risk === 'MODERATE'),
-      low: locations.filter(
-        (loc) => loc.flood_risk === 'LOW' || loc.flood_risk === 'SAFE',
-      ),
+      low: locations.filter((loc) => loc.flood_risk === 'LOW'),
+      safe: locations.filter((loc) => loc.flood_risk === 'SAFE'),
     }),
     [locations],
   )
 
   // Toggle section expansion
-  const toggleSection = (section: 'critical' | 'high' | 'moderate' | 'low') => {
+  const toggleSection = (
+    section: 'critical' | 'high' | 'moderate' | 'low' | 'safe',
+  ) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -101,7 +103,7 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
   return (
     <div className="w-[420px] bg-gray-50 border-r border-gray-300 shadow-lg h-full overflow-y-auto flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-4 flex-shrink-0 shadow-md">
+      {/* <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-4 flex-shrink-0 shadow-md">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold">AI4SIDS Monitor</h2>
@@ -118,7 +120,7 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
         <div className="text-xs text-blue-200 mt-2">
           Last update: {systemUpdateFreshness}
         </div>
-      </div>
+      </div> */}
 
       {/* System Status Section */}
       {/* {showSystemStatus && (
@@ -225,15 +227,15 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => toggleSection('critical')}
-              className="w-full flex items-center justify-between px-3 py-2 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 bg-critical/10 border border-critical/30 rounded-lg hover:bg-critical/20 transition-colors"
             >
               <div className="flex items-center space-x-2">
-                <span className="text-red-600 font-bold">🔴 CRITICAL</span>
-                <Badge className="bg-red-600 text-white text-xs">
+                <span className="text-critical font-bold">🔴 CRITICAL</span>
+                <Badge className="bg-critical text-critical-foreground text-xs">
                   {groupedLocations.critical.length}
                 </Badge>
               </div>
-              <span className="text-red-600 text-sm">
+              <span className="text-critical text-sm">
                 {expandedSections.critical ? '▼' : '▶'}
               </span>
             </button>
@@ -260,15 +262,15 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => toggleSection('high')}
-              className="w-full flex items-center justify-between px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 bg-high-risk/10 border border-high-risk/30 rounded-lg hover:bg-high-risk/20 transition-colors"
             >
               <div className="flex items-center space-x-2">
-                <span className="text-orange-600 font-bold">🟠 HIGH</span>
-                <Badge className="bg-orange-600 text-white text-xs">
+                <span className="text-high-risk font-bold">🟠 HIGH</span>
+                <Badge className="bg-high-risk text-high-risk-foreground text-xs">
                   {groupedLocations.high.length}
                 </Badge>
               </div>
-              <span className="text-orange-600 text-sm">
+              <span className="text-high-risk text-sm">
                 {expandedSections.high ? '▼' : '▶'}
               </span>
             </button>
@@ -295,15 +297,15 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => toggleSection('moderate')}
-              className="w-full flex items-center justify-between px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 bg-moderate/10 border border-moderate/30 rounded-lg hover:bg-moderate/20 transition-colors"
             >
               <div className="flex items-center space-x-2">
-                <span className="text-yellow-600 font-bold">🟡 MEDIUM</span>
-                <Badge className="bg-yellow-600 text-white text-xs">
+                <span className="text-moderate font-bold">🟡 MODERATE</span>
+                <Badge className="bg-moderate text-moderate-foreground text-xs">
                   {groupedLocations.moderate.length}
                 </Badge>
               </div>
-              <span className="text-yellow-600 text-sm">
+              <span className="text-moderate text-sm">
                 {expandedSections.moderate ? '▼' : '▶'}
               </span>
             </button>
@@ -317,7 +319,7 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
                     currentValue={location.river_level}
                     changeRate={location.change_rate}
                     onSelect={() => onLocationSelect(location)}
-                    enabled={expandedSections.medium} // Only enabled when expanded
+                    enabled={expandedSections.moderate} // Only enabled when expanded
                   />
                 ))}
               </div>
@@ -330,15 +332,15 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => toggleSection('low')}
-              className="w-full flex items-center justify-between px-3 py-2 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 bg-low-risk/10 border border-low-risk/30 rounded-lg hover:bg-low-risk/20 transition-colors"
             >
               <div className="flex items-center space-x-2">
-                <span className="text-green-600 font-bold">🟢 LOW</span>
-                <Badge className="bg-green-600 text-white text-xs">
+                <span className="text-low-risk font-bold">� LOW</span>
+                <Badge className="bg-low-risk text-low-risk-foreground text-xs">
                   {groupedLocations.low.length}
                 </Badge>
               </div>
-              <span className="text-green-600 text-sm">
+              <span className="text-low-risk text-sm">
                 {expandedSections.low ? '▼' : '▶'}
               </span>
             </button>
@@ -353,6 +355,41 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
                     changeRate={location.change_rate}
                     onSelect={() => onLocationSelect(location)}
                     enabled={expandedSections.low} // Only enabled when expanded
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SAFE Section */}
+        {groupedLocations.safe.length > 0 && (
+          <div className="space-y-2">
+            <button
+              onClick={() => toggleSection('safe')}
+              className="w-full flex items-center justify-between px-3 py-2 bg-safe/10 border border-safe/30 rounded-lg hover:bg-safe/20 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="text-safe font-bold">🟢 SAFE</span>
+                <Badge className="bg-safe text-safe-foreground text-xs">
+                  {groupedLocations.safe.length}
+                </Badge>
+              </div>
+              <span className="text-safe text-sm">
+                {expandedSections.safe ? '▼' : '▶'}
+              </span>
+            </button>
+            {expandedSections.safe && (
+              <div className="space-y-2 pl-2">
+                {groupedLocations.safe.map((location) => (
+                  <SparklineCard
+                    key={location.name}
+                    locationName={location.name}
+                    riskLevel={location.flood_risk}
+                    currentValue={location.river_level}
+                    changeRate={location.change_rate}
+                    onSelect={() => onLocationSelect(location)}
+                    enabled={expandedSections.safe} // Only enabled when expanded
                   />
                 ))}
               </div>

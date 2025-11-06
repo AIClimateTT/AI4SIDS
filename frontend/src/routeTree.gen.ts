@@ -12,14 +12,10 @@ import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MapRouteImport } from './routes/map_'
-import { Route as dashboardRouteRouteImport } from './routes/(dashboard)/route'
-import { Route as dashboardIndexRouteImport } from './routes/(dashboard)/index'
+import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo.tanstack-query'
-import { Route as dashboardTestRouteImport } from './routes/(dashboard)/test'
-import { Route as dashboardTeamRouteImport } from './routes/(dashboard)/team'
-import { Route as dashboardLearnRouteImport } from './routes/(dashboard)/learn'
-import { Route as dashboardAnalyticsRouteImport } from './routes/(dashboard)/analytics'
-import { Route as dashboardAboutRouteImport } from './routes/(dashboard)/about'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo.start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo.start.api-request'
 import { ServerRoute as ApiDemoTqTodosServerRouteImport } from './routes/api.demo-tq-todos'
@@ -32,44 +28,25 @@ const MapRoute = MapRouteImport.update({
   path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
-const dashboardRouteRoute = dashboardRouteRouteImport.update({
-  id: '/(dashboard)',
+const DashboardRouteRoute = DashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const dashboardIndexRoute = dashboardIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => dashboardRouteRoute,
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
-} as any)
-const dashboardTestRoute = dashboardTestRouteImport.update({
-  id: '/test',
-  path: '/test',
-  getParentRoute: () => dashboardRouteRoute,
-} as any)
-const dashboardTeamRoute = dashboardTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => dashboardRouteRoute,
-} as any)
-const dashboardLearnRoute = dashboardLearnRouteImport.update({
-  id: '/learn',
-  path: '/learn',
-  getParentRoute: () => dashboardRouteRoute,
-} as any)
-const dashboardAnalyticsRoute = dashboardAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => dashboardRouteRoute,
-} as any)
-const dashboardAboutRoute = dashboardAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => dashboardRouteRoute,
 } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
@@ -93,40 +70,29 @@ const ApiDemoNamesServerRoute = ApiDemoNamesServerRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof dashboardIndexRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/map': typeof MapRoute
-  '/about': typeof dashboardAboutRoute
-  '/analytics': typeof dashboardAnalyticsRoute
-  '/learn': typeof dashboardLearnRoute
-  '/team': typeof dashboardTeamRoute
-  '/test': typeof dashboardTestRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/map': typeof MapRoute
-  '/about': typeof dashboardAboutRoute
-  '/analytics': typeof dashboardAnalyticsRoute
-  '/learn': typeof dashboardLearnRoute
-  '/team': typeof dashboardTeamRoute
-  '/test': typeof dashboardTestRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/': typeof dashboardIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/(dashboard)': typeof dashboardRouteRouteWithChildren
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/map_': typeof MapRoute
-  '/(dashboard)/about': typeof dashboardAboutRoute
-  '/(dashboard)/analytics': typeof dashboardAnalyticsRoute
-  '/(dashboard)/learn': typeof dashboardLearnRoute
-  '/(dashboard)/team': typeof dashboardTeamRoute
-  '/(dashboard)/test': typeof dashboardTestRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/(dashboard)/': typeof dashboardIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
 }
@@ -134,44 +100,34 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
     | '/map'
-    | '/about'
-    | '/analytics'
-    | '/learn'
-    | '/team'
-    | '/test'
     | '/demo/tanstack-query'
+    | '/dashboard/'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/map'
-    | '/about'
-    | '/analytics'
-    | '/learn'
-    | '/team'
-    | '/test'
-    | '/demo/tanstack-query'
     | '/'
+    | '/map'
+    | '/demo/tanstack-query'
+    | '/dashboard'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
   id:
     | '__root__'
-    | '/(dashboard)'
+    | '/'
+    | '/dashboard'
     | '/map_'
-    | '/(dashboard)/about'
-    | '/(dashboard)/analytics'
-    | '/(dashboard)/learn'
-    | '/(dashboard)/team'
-    | '/(dashboard)/test'
     | '/demo/tanstack-query'
-    | '/(dashboard)/'
+    | '/dashboard/'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  dashboardRouteRoute: typeof dashboardRouteRouteWithChildren
+  IndexRoute: typeof IndexRoute
+  DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   MapRoute: typeof MapRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
@@ -212,19 +168,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(dashboard)': {
-      id: '/(dashboard)'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof dashboardRouteRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(dashboard)/': {
-      id: '/(dashboard)/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof dashboardIndexRouteImport
-      parentRoute: typeof dashboardRouteRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
@@ -232,41 +195,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/tanstack-query'
       preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/(dashboard)/test': {
-      id: '/(dashboard)/test'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof dashboardTestRouteImport
-      parentRoute: typeof dashboardRouteRoute
-    }
-    '/(dashboard)/team': {
-      id: '/(dashboard)/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof dashboardTeamRouteImport
-      parentRoute: typeof dashboardRouteRoute
-    }
-    '/(dashboard)/learn': {
-      id: '/(dashboard)/learn'
-      path: '/learn'
-      fullPath: '/learn'
-      preLoaderRoute: typeof dashboardLearnRouteImport
-      parentRoute: typeof dashboardRouteRoute
-    }
-    '/(dashboard)/analytics': {
-      id: '/(dashboard)/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof dashboardAnalyticsRouteImport
-      parentRoute: typeof dashboardRouteRoute
-    }
-    '/(dashboard)/about': {
-      id: '/(dashboard)/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof dashboardAboutRouteImport
-      parentRoute: typeof dashboardRouteRoute
     }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
@@ -303,30 +231,21 @@ declare module '@tanstack/react-start/server' {
   }
 }
 
-interface dashboardRouteRouteChildren {
-  dashboardAboutRoute: typeof dashboardAboutRoute
-  dashboardAnalyticsRoute: typeof dashboardAnalyticsRoute
-  dashboardLearnRoute: typeof dashboardLearnRoute
-  dashboardTeamRoute: typeof dashboardTeamRoute
-  dashboardTestRoute: typeof dashboardTestRoute
-  dashboardIndexRoute: typeof dashboardIndexRoute
+interface DashboardRouteRouteChildren {
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
-const dashboardRouteRouteChildren: dashboardRouteRouteChildren = {
-  dashboardAboutRoute: dashboardAboutRoute,
-  dashboardAnalyticsRoute: dashboardAnalyticsRoute,
-  dashboardLearnRoute: dashboardLearnRoute,
-  dashboardTeamRoute: dashboardTeamRoute,
-  dashboardTestRoute: dashboardTestRoute,
-  dashboardIndexRoute: dashboardIndexRoute,
+const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 
-const dashboardRouteRouteWithChildren = dashboardRouteRoute._addFileChildren(
-  dashboardRouteRouteChildren,
+const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
+  DashboardRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  dashboardRouteRoute: dashboardRouteRouteWithChildren,
+  IndexRoute: IndexRoute,
+  DashboardRouteRoute: DashboardRouteRouteWithChildren,
   MapRoute: MapRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,

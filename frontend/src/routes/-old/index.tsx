@@ -1,9 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const Route = createFileRoute('/(dashboard)/')({
-  component: App,
-})
 
 function App() {
   return (
