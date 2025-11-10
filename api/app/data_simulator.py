@@ -2,6 +2,7 @@
 import asyncio
 import numpy as np
 import random
+import os
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.core.db import SessionLocal
@@ -9,6 +10,11 @@ from app.models.locations import Location
 from app.models.river_levels import RiverLevel
 from app.models.weather import Weather
 from app.models.social import Social
+
+# Configuration: Cycle interval in seconds
+# Set via environment variable for easy deployment adjustment
+CYCLE_INTERVAL = int(os.getenv("DATA_CYCLE_INTERVAL", "3600"))  # Default: 1 hour
+ENABLE_BACKGROUND_TASK = os.getenv("ENABLE_BACKGROUND_TASK", "false").lower() == "true"
 
 # Define sensor locations - matches your existing sensor network
 SENSOR_LOCATIONS = {
@@ -25,6 +31,8 @@ SENSOR_LOCATIONS = {
 # Global state for persistent simulation
 level_tracker = {}  # Track river levels between cycles
 location_cache = {}  # Cache location IDs to avoid repeated queries
+_background_task_running = False  # Track if background task is running
+_background_task = None  # Reference to the running task
 
 
 async def initialize_simulation_state():
@@ -65,18 +73,29 @@ async def initialize_simulation_state():
 
 async def generate_realtime_data():
     """
-    Continuously generate and persist new simulated data every 15 seconds.
-    Data is saved directly to SQLite database using SQLAlchemy models.
+    Continuously generate and persist new simulated data.
+    Controlled by ENABLE_BACKGROUND_TASK environment variable.
+    For free hosting (Railway/Render), set ENABLE_BACKGROUND_TASK=false
+    and use on-demand generation via API endpoints instead.
     """
+    global _background_task_running
+    
+    if not ENABLE_BACKGROUND_TASK:
+        print("⏸️  Background data generation is DISABLED (ENABLE_BACKGROUND_TASK=false)")
+        print("📊 Data will be generated on-demand via API calls")
+        _background_task_running = False
+        return
+    
     global level_tracker, location_cache
     
     # Initialize simulation state
     await initialize_simulation_state()
     
+    _background_task_running = True
     cycle = 0
     print("🌊 Starting real-time data generation...")
 
-    while True:
+    while _background_task_running:  # Changed from while True to respect stop signal
         timestamp = datetime.now(timezone.utc)
         
         try:
@@ -87,26 +106,26 @@ async def generate_realtime_data():
                     
                     # === RIVER LEVEL SIMULATION ===
                     # === VIDEO RECORDING MODE: Accelerated flood scenario ===
-                    prev_level = level_tracker[sensor_id]
-                    
-                    # Create dramatic flood scenario for video
-                    if cycle < 20:  # First minute: gradual rise
-                        change = np.random.normal(loc=0.08, scale=0.02)  # Faster rise
-                    elif cycle < 40:  # Second minute: rapid flood development
-                        change = np.random.normal(loc=0.15, scale=0.03)  # Rapid rise
-                    elif cycle < 60:  # Third minute: peak flooding
-                        change = np.random.normal(loc=0.05, scale=0.04)  # Near peak with fluctuation
-                    else:  # After 3 minutes: gradual decline
-                        change = np.random.normal(loc=-0.02, scale=0.03)  # Slow decline
-                    
-                    new_level = max(prev_level + change, 0)  # Prevent negative levels
-                    level_tracker[sensor_id] = new_level
-                    
-                    # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
                     # prev_level = level_tracker[sensor_id]
-                    # change = np.random.normal(loc=0.02, scale=0.01)  # Slight upward drift
+                    
+                    # # Create dramatic flood scenario for video
+                    # if cycle < 20:  # First minute: gradual rise
+                    #     change = np.random.normal(loc=0.08, scale=0.02)  # Faster rise
+                    # elif cycle < 40:  # Second minute: rapid flood development
+                    #     change = np.random.normal(loc=0.15, scale=0.03)  # Rapid rise
+                    # elif cycle < 60:  # Third minute: peak flooding
+                    #     change = np.random.normal(loc=0.05, scale=0.04)  # Near peak with fluctuation
+                    # else:  # After 3 minutes: gradual decline
+                    #     change = np.random.normal(loc=-0.02, scale=0.03)  # Slow decline
+                    
                     # new_level = max(prev_level + change, 0)  # Prevent negative levels
                     # level_tracker[sensor_id] = new_level
+                    
+                    # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
+                    prev_level = level_tracker[sensor_id]
+                    change = np.random.normal(loc=0.02, scale=0.01)  # Slight upward drift
+                    new_level = max(prev_level + change, 0)  # Prevent negative levels
+                    level_tracker[sensor_id] = new_level
                     
                     # Create river level record
                     river_record = RiverLevel(
@@ -216,15 +235,10 @@ async def generate_realtime_data():
             # Continue the loop even if there's an error
             
         # Wait before next generation cycle
-        # === VIDEO RECORDING MODE ===
-        # Fast cycles for single flood scenario recording
-        await asyncio.sleep(2)  # 2 seconds per cycle (5x faster than normal)
-        
-        # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
-        # if cycle > 3:  # Skip initial delays for faster startup
-        #     await asyncio.sleep(15)  # Normal 15-second cycles
-        # else:
-        #     await asyncio.sleep(2)  # Faster initial cycles
+        if cycle > 3:  # Skip initial delays for faster startup
+            await asyncio.sleep(CYCLE_INTERVAL)  # Configurable via env variable
+        else:
+            await asyncio.sleep(2)  # Faster initial cycles
             
         cycle += 1
 
@@ -289,3 +303,56 @@ def get_historical_data_for_location(location_name: str, data_type: str = "river
     except Exception as e:
         print(f"Error fetching historical data: {e}")
         return []
+
+
+# ============================================================================
+# BACKGROUND TASK CONTROL FUNCTIONS
+# ============================================================================
+
+async def start_background_generation():
+    """Start the background data generation task"""
+    global _background_task, _background_task_running, ENABLE_BACKGROUND_TASK
+    
+    if _background_task_running:
+        return {"success": False, "message": "Background task is already running"}
+    
+    # Enable background task
+    ENABLE_BACKGROUND_TASK = True
+    
+    # Start the task
+    _background_task = asyncio.create_task(generate_realtime_data())
+    
+    return {"success": True, "message": "Background data generation started"}
+
+
+async def stop_background_generation():
+    """Stop the background data generation task"""
+    global _background_task, _background_task_running
+    
+    if not _background_task_running:
+        return {"success": False, "message": "Background task is not running"}
+    
+    # Signal the task to stop
+    _background_task_running = False
+    
+    # Cancel the task if it exists
+    if _background_task:
+        _background_task.cancel()
+        try:
+            await _background_task
+        except asyncio.CancelledError:
+            pass
+        _background_task = None
+    
+    return {"success": True, "message": "Background data generation stopped"}
+
+
+def get_background_task_status():
+    """Get the current status of the background data generation task"""
+    return {
+        "running": _background_task_running,
+        "enabled_in_env": ENABLE_BACKGROUND_TASK,
+        "cycle_interval_seconds": CYCLE_INTERVAL,
+        "task_exists": _background_task is not None,
+        "locations_count": len(SENSOR_LOCATIONS)
+    }

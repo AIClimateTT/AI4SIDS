@@ -41,25 +41,32 @@ async def lifespan(app: FastAPI):
     await stop_prediction_tasks()
     print("✅ Shutdown complete")
 
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application"""
+    app = FastAPI(
+        title="AI4SIDS Real-Time Flood Monitoring API",
+        description="Real-time flood monitoring system for Small Island Developing States",
+        version="3.0.0",
+        lifespan=lifespan
+    )
+    
 
-app = FastAPI(
-    title="AI4SIDS Real-Time Flood Monitoring API",
-    description="Real-time flood monitoring system for Small Island Developing States",
-    version="3.0.0",
-    lifespan=lifespan
-)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Include routers
-app.include_router(location_router)
-app.include_router(analytics_router)
+    app.include_router(location_router)
+    app.include_router(analytics_router)
+
+    return app
+
+app = create_app()
 
 
 @app.get("/api/predictions/status")
@@ -80,7 +87,28 @@ async def trigger_prediction_generation():
         return {"success": False, "message": f"Failed to trigger prediction generation: {str(e)}"}
 
 
+# ============================================================================
+# BACKGROUND DATA GENERATION CONTROL ENDPOINTS
+# ============================================================================
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+@app.get("/api/data-generation/status")
+async def get_data_generation_status():
+    """Get status of background data generation task"""
+    from app.data_simulator import get_background_task_status
+    return get_background_task_status()
+
+
+@app.post("/api/data-generation/start")
+async def start_data_generation():
+    """Start background data generation task"""
+    from app.data_simulator import start_background_generation
+    result = await start_background_generation()
+    return result
+
+
+@app.post("/api/data-generation/stop")
+async def stop_data_generation():
+    """Stop background data generation task"""
+    from app.data_simulator import stop_background_generation
+    result = await stop_background_generation()
+    return result
