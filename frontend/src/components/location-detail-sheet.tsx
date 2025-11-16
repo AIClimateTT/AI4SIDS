@@ -14,10 +14,9 @@ import {
   useLocationTimeline,
 } from '@/lib/hooks/useApiData'
 import { dataTransformers } from '@/lib/api/client'
-import type { LocationSummary } from '@/lib/api/types'
+import type { LocationSummary } from '@/lib/types'
 import AnalyticsModal from '@/components/analytics-modal'
 import { useState } from 'react'
-import { ClientOnly } from '@tanstack/react-router'
 
 interface LocationDetailSheetProps {
   location: LocationSummary | null
@@ -438,7 +437,7 @@ export function LocationDetailSheet({
       </SheetContent>
 
       {/* Analytics Modal */}
-      
+
       <AnalyticsModal
         isOpen={analyticsOpen}
         onClose={() => setAnalyticsOpen(false)}

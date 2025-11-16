@@ -7,13 +7,27 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from app.core.db import SessionDep
-from app.features.location.models import (
+from app.features.location.schemas import (
     RealTimeConditions, ComprehensiveUpdate, LocationHistory, 
     LocationTimeline, LocationsResponse
 )
-from . import models
-from . import service
+from app.features.location import service
+
 router = APIRouter(prefix="/api", tags=["locations"])
+
+
+def ensure_float(value) -> float:
+    """Convert any numeric type (including numpy) to Python float"""
+    if value is None:
+        return 0.0
+    return float(value)
+
+
+def ensure_int(value) -> int:
+    """Convert any numeric type (including numpy) to Python int"""
+    if value is None:
+        return 0
+    return int(value)
 
 
 @router.get("/real-time/{location}")
@@ -29,40 +43,40 @@ async def get_real_time_conditions(location: str, session: SessionDep):
             raise HTTPException(status_code=404, detail=f"No river data found for {location}")
         
         current_time = datetime.now(timezone.utc)
-        flood_risk = service.calculate_flood_risk(river_point.river_level_m)
+        flood_risk = service.calculate_flood_risk(ensure_float(river_point.river_level_m))
         
         # Generate contextual social posts
-        sentiment_score = social_point.sentiment_score if social_point else -0.3
+        sentiment_score = ensure_float(social_point.sentiment_score if social_point else -0.3)
         posts = service.generate_contextual_posts(location, sentiment_score, {
-            "river_level": river_point.river_level_m,
-            "rainfall": weather_point.actual_rainfall_mm if weather_point else 1.0
+            "river_level": ensure_float(river_point.river_level_m),
+            "rainfall": ensure_float(weather_point.actual_rainfall_mm if weather_point else 1.0)
         })
         
         return {
             "location": location,
             "timestamp": current_time.isoformat(),
             "river_conditions": {
-                "level": river_point.river_level_m,
-                "change_rate": river_point.change_in_level_m,
+                "level": ensure_float(river_point.river_level_m),
+                "change_rate": ensure_float(river_point.change_in_level_m),
                 "trend": "rising" if river_point.change_in_level_m > 0 else "falling" if river_point.change_in_level_m < 0 else "stable",
                 "flood_risk": flood_risk,
                 "sensor_id": river_point.location.sensor_id
             },
             "weather": {
-                "rainfall_mm": weather_point.actual_rainfall_mm if weather_point else 1.0,
-                "temperature_c": weather_point.actual_temperature_c if weather_point else 27.0,
-                "humidity_percent": weather_point.actual_humidity_percent if weather_point else 75,
-                "rainfall_rate_hourly": (weather_point.actual_rainfall_mm * 4) if weather_point else 4.0
+                "rainfall_mm": ensure_float(weather_point.actual_rainfall_mm if weather_point else 1.0),
+                "temperature_c": ensure_float(weather_point.actual_temperature_c if weather_point else 27.0),
+                "humidity_percent": ensure_float(weather_point.actual_humidity_percent if weather_point else 75),
+                "rainfall_rate_hourly": ensure_float((weather_point.actual_rainfall_mm * 4) if weather_point else 4.0)
             },
             "social_activity": {
-                "post_count": social_point.post_count if social_point else 2,
+                "post_count": ensure_int(social_point.post_count if social_point else 2),
                 "sentiment_score": sentiment_score,
                 "sentiment_level": "Highly Negative" if sentiment_score < -0.5 else "Negative" if sentiment_score < -0.3 else "Neutral",
                 "recent_posts": posts,
                 "activity_level": "HIGH" if (social_point and social_point.post_count >= 6) else "MEDIUM" if (social_point and social_point.post_count >= 3) else "LOW"
             },
             "insights": {
-                "summary": f"{flood_risk} flood risk with {river_point.change_in_level_m:+.3f}m/15min change",
+                "summary": f"{flood_risk} flood risk with {ensure_float(river_point.change_in_level_m):+.3f}m/15min change",
                 "recommendation": (
                     "Immediate evacuation recommended" if flood_risk == "CRITICAL" else
                     "Monitor closely and prepare to evacuate" if flood_risk == "HIGH" else
@@ -70,7 +84,7 @@ async def get_real_time_conditions(location: str, session: SessionDep):
                     "Conditions approaching flood threshold - monitor closely" if flood_risk == "LOW" else
                     "Normal conditions - continue monitoring"
                 ),
-                "correlation": f"High rainfall ({weather_point.actual_rainfall_mm if weather_point else 1.0}mm) correlating with {'rising' if river_point.change_in_level_m > 0 else 'stable'} river levels"
+                "correlation": f"High rainfall ({ensure_float(weather_point.actual_rainfall_mm if weather_point else 1.0)}mm) correlating with {'rising' if river_point.change_in_level_m > 0 else 'stable'} river levels"
             }
         }
         

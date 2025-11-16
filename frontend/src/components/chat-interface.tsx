@@ -1,6 +1,6 @@
 // src/components/app/chat-interface.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { type ChatInterfaceProps, type Message } from '@/types';
+import type { ChatInterfaceProps,  Message } from '@/lib/types';
 import { chatService, getContextualQuestions } from '@/lib/api/chatService';
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({

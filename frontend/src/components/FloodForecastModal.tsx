@@ -1,56 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from './ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
 
-// --- MOCKED ICON COMPONENTS (Lucide React Stand-ins) ---
-// These are simple SVG implementations to avoid external library dependencies.
-const Download = ({ className }) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
-const X = ({ className }) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
+import { Download, X } from 'lucide-react';
 
-// --- MOCK UI COMPONENTS (Tailwind-based) ---
-// These replicate common UI primitives used in the original application.
-const Card = ({ children, className = '' }) => (
-  <div className={`rounded-xl bg-white shadow-xl border border-gray-200 ${className}`}>{children}</div>
-);
-const CardHeader = ({ children, className = '' }) => (
-  <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>{children}</div>
-);
-const CardTitle = ({ children, className = '' }) => (
-  <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`}>{children}</h3>
-);
-const CardDescription = ({ children, className = '' }) => (
-  <p className={`text-sm text-gray-500 ${className}`}>{children}</p>
-);
-const CardContent = ({ children, className = '' }) => (
-  <div className={`p-6 pt-0 ${className}`}>{children}</div>
-);
-const Badge = ({ children, className = '', variant = 'default' }) => (
-  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}>{children}</span>
-);
-const Button = ({ children, className = '', variant = 'default', size = 'default', onClick, 'aria-label': ariaLabel }) => {
-  const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
-  let variantClasses = "bg-blue-600 text-white hover:bg-blue-700 shadow";
-  if (variant === 'outline') {
-    variantClasses = "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100";
-  } else if (variant === 'ghost') {
-    variantClasses = "hover:bg-gray-100 text-gray-900";
-  }
 
-  let sizeClasses = "h-10 py-2 px-4";
-  if (size === 'sm') {
-    sizeClasses = "h-9 px-3";
-  } else if (size === 'icon') {
-    sizeClasses = "h-10 w-10";
-  }
 
-  return (
-    <button
-      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
-      onClick={onClick}
-      aria-label={ariaLabel}
-    >
-      {children}
-    </button>
-  );
-};
 
 // --- INTERFACE DEFINITIONS (Aligned with weekforecast.py Pydantic) ---
 interface ForecastDay {

@@ -2,7 +2,7 @@ import { createFileRoute, ClientOnly } from '@tanstack/react-router'
 import { useRef, useState, lazy, Suspense } from 'react'
 
 import type { MapComponentRef } from '@/components/map'
-import type { LocationSummary } from '@/lib/api/types'
+import type { LocationSummary } from '@/lib/types'
 
 import { ChatWithButton } from '@/components/chat-interface'
 import { AIChatBotWithButton } from '@/components/AIChatbot'

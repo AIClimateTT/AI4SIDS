@@ -6,9 +6,13 @@ import {
     LocationHistory,
     ApiStatus,
     ApiLocation,
-    mapApiRiskToFrontend
-} from './types';
-import type { FloodLocation } from '@/types';
+    mapApiRiskToFrontend,
+    AnalyticsData,
+    PredictionStatusData,
+    PredictionGenerationResult,
+    FloodLocation,
+
+} from '../types';
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -82,6 +86,89 @@ export const apiService = {
     getLocationHistory: (location: string, points: number = 20): Promise<LocationHistory> => {
         const encodedLocation = encodeURIComponent(location);
         return apiRequest<LocationHistory>(`/api/history/${encodedLocation}?points=${points}`);
+    },
+
+    /**
+     * Get analytics data for a specific location by name
+     * @param locationName - Location name
+     * @param hoursBack - Hours of historical data to include (default: 24)
+     */
+    getAnalyticsByName: (locationName: string, hoursBack: number = 24): Promise<AnalyticsData> => {
+        const encodedLocation = encodeURIComponent(locationName);
+        return apiRequest<AnalyticsData>(`/api/analytics/by-name/${encodedLocation}?hours_back=${hoursBack}`);
+    },
+
+    /**
+     * Get analytics data for a specific location by ID
+     * @param locationId - Location ID
+     * @param hoursBack - Hours of historical data to include (default: 24)
+     */
+    getAnalyticsById: (locationId: number, hoursBack: number = 24): Promise<AnalyticsData> => {
+        return apiRequest<AnalyticsData>(`/api/analytics/${locationId}?hours_back=${hoursBack}`);
+    },
+
+    /**
+     * Get prediction task status
+     */
+    getPredictionStatus: (): Promise<PredictionStatusData> => {
+        return apiRequest<PredictionStatusData>('/api/predictions/status');
+    },
+
+    /**
+     * Generate predictions for a location by name
+     * @param locationName - Location name
+     */
+    generatePredictionsByName: async (locationName: string): Promise<PredictionGenerationResult> => {
+        const encodedLocation = encodeURIComponent(locationName);
+        const response = await fetch(`${API_BASE_URL}/api/analytics/by-name/${encodedLocation}/predictions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to generate predictions: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Generate predictions for a location by ID
+     * @param locationId - Location ID
+     */
+    generatePredictionsById: async (locationId: number): Promise<PredictionGenerationResult> => {
+        const response = await fetch(`${API_BASE_URL}/api/analytics/${locationId}/predictions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to generate predictions: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Trigger global prediction generation for all locations
+     */
+    triggerGlobalPredictions: async (): Promise<{ success: boolean; message: string }> => {
+        const response = await fetch(`${API_BASE_URL}/api/predictions/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to trigger global predictions: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json();
     },
 };
 

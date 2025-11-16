@@ -1,15 +1,16 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { apiService, dataTransformers } from '../api/client';
+import type { AnalyticsData, PredictionStatusData } from '@/lib/types';
 import type {
     ComprehensiveUpdate,
     RealTimeConditions,
     LocationsResponse,
     LocationTimeline,
     LocationHistory,
-    ApiStatus
-} from '../api/types';
-import type { FloodLocation } from '@/types';
-import {env} from '@/lib/env/server';
+    ApiStatus,
+    FloodLocation,
+} from '../types';
+import { env } from '@/lib/env/server';
 
 // Query keys for consistent caching
 export const queryKeys = {
@@ -24,24 +25,17 @@ export const queryKeys = {
     predictionStatus: ['prediction-status'] as const,
 } as const;
 
-// Configuration constants
-// === VIDEO RECORDING MODE ===
-const REAL_TIME_REFETCH_INTERVAL = 1 * 1000; // 1 second to match API cycle (fast for demo)
-const STALE_TIME_DEMO = 2 * 1000; // 2 seconds stale time for demo mode
-// === PRODUCTION MODE ===
-// const REAL_TIME_REFETCH_INTERVAL = 15 * 1000; // 15 seconds to match API cycle
-const STALE_TIME_PROD = 15 * 1000; // 15 seconds stale time for production
-const SYSTEM_UPDATE_REFETCH_INTERVAL = 1 * 1000; // 1 second
-const LOCATIONS_REFETCH_INTERVAL = 1 * 1000; // 1 second for demo
-const ANALYTICS_REFETCH_INTERVAL = 1 * 1000; // 1 second for analytics data
-const PREDICTION_STATUS_REFETCH_INTERVAL = 1 * 1000; // 1 second for prediction status
+// Convert environment variables from seconds to milliseconds
+const REFETCH_INTERVAL = env.VITE_REFETCH_INTERVAL * 1000;
+const LOCATIONS_REFETCH_INTERVAL = env.VITE_LOCATIONS_REFETCH_INTERVAL * 1000;
+const ANALYTICS_REFETCH_INTERVAL = env.VITE_ANALYTICS_REFETCH_INTERVAL * 1000;
+const PREDICTION_STATUS_REFETCH_INTERVAL = env.VITE_PREDICTION_STATUS_REFETCH_INTERVAL * 1000;
+const STALE_TIME = env.VITE_STALE_TIME * 1000;
+const RETRY_COUNT = env.VITE_RETRY_COUNT;
+const RETRY_DELAY_BASE = env.VITE_RETRY_DELAY_BASE * 1000;
 
-// === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
-// const REAL_TIME_REFETCH_INTERVAL = 15 * 1000; // 15 seconds to match API cycle
-// const SYSTEM_UPDATE_REFETCH_INTERVAL = 15 * 1000; // 15 seconds
-// const LOCATIONS_REFETCH_INTERVAL = 60 * 1000; // 1 minute (locations change less frequently)
-// const ANALYTICS_REFETCH_INTERVAL = 60 * 1000; // 1 minute for analytics data
-// const PREDICTION_STATUS_REFETCH_INTERVAL = 30 * 1000; // 30 seconds for prediction status
+// Retry delay function with exponential backoff
+const retryDelay = (attemptIndex: number) => Math.min(RETRY_DELAY_BASE * 2 ** attemptIndex, 30000);
 
 /**
  * Hook to get comprehensive system update with auto-refresh
@@ -50,11 +44,11 @@ export function useSystemUpdate(): UseQueryResult<ComprehensiveUpdate, Error> {
     return useQuery({
         queryKey: queryKeys.systemUpdate,
         queryFn: apiService.getSystemUpdate,
-        refetchInterval: SYSTEM_UPDATE_REFETCH_INTERVAL,
+        refetchInterval: REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Consider data stale after 2 seconds (demo mode)
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -67,9 +61,9 @@ export function useLocations(): UseQueryResult<LocationsResponse, Error> {
         queryFn: apiService.getLocations,
         refetchInterval: LOCATIONS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: STALE_TIME_DEMO,
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -85,9 +79,9 @@ export function useFloodLocations(): UseQueryResult<FloodLocation[], Error> {
         },
         refetchInterval: LOCATIONS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: STALE_TIME_DEMO,
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -102,11 +96,11 @@ export function useRealTimeConditions(
         queryKey: location ? queryKeys.realTime(location) : [],
         queryFn: () => (location ? apiService.getRealTimeConditions(location) : Promise.reject('No location')),
         enabled: enabled && !!location,
-        refetchInterval: REAL_TIME_REFETCH_INTERVAL,
+        refetchInterval: REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: STALE_TIME_DEMO,
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -122,11 +116,11 @@ export function useLocationTimeline(
         queryKey: location ? queryKeys.timeline(location, minutes) : [],
         queryFn: () => (location ? apiService.getLocationTimeline(location, minutes) : Promise.reject('No location')),
         enabled: enabled && !!location,
-        refetchInterval: REAL_TIME_REFETCH_INTERVAL,
+        refetchInterval: REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: STALE_TIME_DEMO,
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -142,11 +136,11 @@ export function useLocationHistory(
         queryKey: location ? queryKeys.locationHistory(location, points) : [],
         queryFn: () => (location ? apiService.getLocationHistory(location, points) : Promise.reject('No location')),
         enabled: enabled && !!location,
-        refetchInterval: REAL_TIME_REFETCH_INTERVAL,
+        refetchInterval: REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: STALE_TIME_DEMO,
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -157,11 +151,11 @@ export function useApiStatus(): UseQueryResult<ApiStatus, Error> {
     return useQuery({
         queryKey: queryKeys.apiStatus,
         queryFn: apiService.getApiStatus,
-        refetchInterval: 3 * 1000, // Check API status every 3 seconds (demo mode)
+        refetchInterval: REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: STALE_TIME_DEMO,
+        staleTime: STALE_TIME,
         retry: 2,
-        retryDelay: 5000,
+        retryDelay: (attemptIndex) => Math.min(RETRY_DELAY_BASE * 2 ** attemptIndex, 30000),
     });
 }
 
@@ -241,68 +235,8 @@ export function useDataFreshness() {
     return {
         systemUpdateFreshness: systemUpdateTime ? getTimeSinceUpdate(systemUpdateTime) : 'Never',
         locationsFreshness: locationsUpdateTime ? getTimeSinceUpdate(locationsUpdateTime) : 'Never',
-        isDataFresh: (timestamp: number) => Date.now() - timestamp < 30000, // Fresh if updated within 30 seconds
+        isDataFresh: (timestamp: number) => Date.now() - timestamp < (env.VITE_DATA_FRESH_THRESHOLD * 1000),
     };
-}
-
-// Analytics data types
-export interface AnalyticsData {
-    location: {
-        id: number;
-        name: string;
-        latitude: number;
-        longitude: number;
-    };
-    time_range: {
-        hours_back: number;
-        start_time: string;
-        end_time: string;
-    };
-    historical_data: Array<{
-        timestamp: string;
-        river_level_m: number;
-        change_in_level_m: number;
-        flood_risk: string;
-    }>;
-    predictions: Array<{
-        predicted_for_time: string;
-        predicted_level_m: number;
-        confidence_score: number;
-        weather_influence: number;
-        flood_risk: string;
-    }>;
-    summary_stats: {
-        min_level: number;
-        max_level: number;
-        avg_level: number;
-        current_level: number;
-        trend: string;
-    };
-    accuracy_metrics: {
-        accuracy_percentage: number;
-        average_error: number;
-        total_predictions: number;
-        accurate_predictions: number;
-    };
-    data_counts: {
-        historical_points: number;
-        prediction_points: number;
-    };
-}
-
-export interface PredictionStatusData {
-    running: boolean;
-    prediction_interval_seconds: number;
-    cleanup_interval_seconds: number;
-    last_cleanup: string | null;
-    task_active: boolean;
-}
-
-export interface PredictionGenerationResult {
-    success: boolean;
-    message: string;
-    predictions_count?: number;
-    location_id?: number;
 }
 
 /**
@@ -315,22 +249,13 @@ export function useLocationAnalytics(
 ): UseQueryResult<AnalyticsData, Error> {
     return useQuery({
         queryKey: locationName ? queryKeys.analytics(locationName, hoursBack) : [],
-        queryFn: async () => {
-            if (!locationName) throw new Error('No location name provided');
-            const response = await fetch(
-                `${env.VITE_API_URL}/api/analytics/by-name/${encodeURIComponent(locationName)}?hours_back=${hoursBack}`
-            );
-            if (!response.ok) {
-                throw new Error(`Failed to fetch analytics: ${response.statusText}`);
-            }
-            return response.json();
-        },
+        queryFn: () => locationName ? apiService.getAnalyticsByName(locationName, hoursBack) : Promise.reject('No location name'),
         enabled: enabled && !!locationName,
         refetchInterval: ANALYTICS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Consider data stale after 2 seconds (demo mode)
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -344,22 +269,13 @@ export function useLocationAnalyticsById(
 ): UseQueryResult<AnalyticsData, Error> {
     return useQuery({
         queryKey: locationId ? queryKeys.analyticsById(locationId, hoursBack) : [],
-        queryFn: async () => {
-            if (!locationId) throw new Error('No location ID provided');
-            const response = await fetch(
-                `${env.VITE_API_URL}/api/analytics/${locationId}?hours_back=${hoursBack}`
-            );
-            if (!response.ok) {
-                throw new Error(`Failed to fetch analytics: ${response.statusText}`);
-            }
-            return response.json();
-        },
+        queryFn: () => locationId ? apiService.getAnalyticsById(locationId, hoursBack) : Promise.reject('No location ID'),
         enabled: enabled && !!locationId,
         refetchInterval: ANALYTICS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
-        retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: STALE_TIME,
+        retry: RETRY_COUNT,
+        retryDelay,
     });
 }
 
@@ -369,18 +285,12 @@ export function useLocationAnalyticsById(
 export function usePredictionStatus(): UseQueryResult<PredictionStatusData, Error> {
     return useQuery({
         queryKey: queryKeys.predictionStatus,
-        queryFn: async () => {
-            const response = await fetch('${env.VITE_API_URL}/api/predictions/status');
-            if (!response.ok) {
-                throw new Error(`Failed to fetch prediction status: ${response.statusText}`);
-            }
-            return response.json();
-        },
+        queryFn: apiService.getPredictionStatus,
         refetchInterval: PREDICTION_STATUS_REFETCH_INTERVAL,
         refetchIntervalInBackground: true,
-        staleTime: 2 * 1000, // Demo mode
+        staleTime: STALE_TIME,
         retry: 2,
-        retryDelay: 5000,
+        retryDelay: (attemptIndex) => Math.min(RETRY_DELAY_BASE * 2 ** attemptIndex, 30000),
     });
 }
 
@@ -389,35 +299,8 @@ export function usePredictionStatus(): UseQueryResult<PredictionStatusData, Erro
  */
 export function useGeneratePredictions() {
     return {
-        generateByName: async (locationName: string): Promise<PredictionGenerationResult> => {
-            const response = await fetch(
-                `${env.VITE_API_URL}/api/analytics/by-name/${encodeURIComponent(locationName)}/predictions`,
-                { method: 'POST' }
-            );
-            if (!response.ok) {
-                throw new Error(`Failed to generate predictions: ${response.statusText}`);
-            }
-            return response.json();
-        },
-        generateById: async (locationId: number): Promise<PredictionGenerationResult> => {
-            const response = await fetch(
-                `${env.VITE_API_URL}/api/analytics/${locationId}/predictions`,
-                { method: 'POST' }
-            );
-            if (!response.ok) {
-                throw new Error(`Failed to generate predictions: ${response.statusText}`);
-            }
-            return response.json();
-        },
-        triggerGlobal: async (): Promise<{ success: boolean; message: string }> => {
-            const response = await fetch(
-                '${env.VITE_API_URL}/api/predictions/generate',
-                { method: 'POST' }
-            );
-            if (!response.ok) {
-                throw new Error(`Failed to trigger global predictions: ${response.statusText}`);
-            }
-            return response.json();
-        }
+        generateByName: apiService.generatePredictionsByName,
+        generateById: apiService.generatePredictionsById,
+        triggerGlobal: apiService.triggerGlobalPredictions,
     };
 }

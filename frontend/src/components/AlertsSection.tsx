@@ -45,7 +45,7 @@ const AlertsSection = () => {
   const [showAllAlerts, setShowAllAlerts] = useState(false)
 
   // Fetch live alerts from API
-  const { alerts, isLoading, criticalAlerts, highAlerts, hasAlerts } =
+  const { alerts,  criticalAlerts, highAlerts, hasAlerts } =
     useSystemAlerts()
 
   // Transform API alerts to component format
@@ -103,19 +103,7 @@ const AlertsSection = () => {
     },
   ]
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <section className="py-16 px-6">
-        <div className="container mx-auto">
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading active alerts...</p>
-          </div>
-        </div>
-      </section>
-    )
-  }
+ 
 
   // No alerts state
   if (!hasAlerts) {
