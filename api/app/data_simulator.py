@@ -140,43 +140,43 @@ async def generate_realtime_data():
                     # === WEATHER SIMULATION ===
                     # === VIDEO RECORDING MODE: Weather supports flood scenario ===
                     if cycle < 30:  # First 1.5 minutes: heavy rain scenario
-                        pred_rain = round(np.random.uniform(3.0, 5.0), 2)  # Heavy rain
+                        pred_rain = float(round(np.random.uniform(3.0, 5.0), 2))  # Heavy rain
                         pred_storm = True  # Storm conditions
                     elif cycle < 50:  # Next minute: continued rain
-                        pred_rain = round(np.random.uniform(2.0, 4.0), 2)  # Moderate-heavy rain
+                        pred_rain = float(round(np.random.uniform(2.0, 4.0), 2))  # Moderate-heavy rain
                         pred_storm = random.random() < 0.7  # Likely storm
                     else:  # After 2.5 minutes: rain subsiding
-                        pred_rain = round(np.random.uniform(0.5, 2.0), 2)  # Light-moderate rain
+                        pred_rain = float(round(np.random.uniform(0.5, 2.0), 2))  # Light-moderate rain
                         pred_storm = random.random() < 0.3  # Occasional storm
                     
                     # === NORMAL PRODUCTION MODE (COMMENTED OUT) ===
                     # pred_rain = round(np.random.uniform(0.5, 1.5), 2)
                     # pred_storm = random.random() < 0.3
-                    pred_wind = round(np.random.uniform(10, 15), 1)
-                    pred_temp = round(np.random.uniform(26, 28), 1)
-                    pred_humid = round(np.random.uniform(70, 85), 1)
+                    pred_wind = float(round(np.random.uniform(10, 15), 1))
+                    pred_temp = float(round(np.random.uniform(26, 28), 1))
+                    pred_humid = float(round(np.random.uniform(70, 85), 1))
                     # pred_storm = random.random() < 0.3  # Moved above
                     
                     # Actual values (predicted + realistic error)
-                    act_rain = pred_rain + np.random.normal(loc=0.1, scale=0.05)
-                    act_wind = pred_wind + np.random.normal(loc=2, scale=0.5)
-                    act_temp = pred_temp + np.random.normal(loc=-0.2, scale=0.2)
-                    act_humid = pred_humid + np.random.normal(loc=5, scale=1)
+                    act_rain = float(pred_rain + np.random.normal(loc=0.1, scale=0.05))
+                    act_wind = float(pred_wind + np.random.normal(loc=2, scale=0.5))
+                    act_temp = float(pred_temp + np.random.normal(loc=-0.2, scale=0.2))
+                    act_humid = float(pred_humid + np.random.normal(loc=5, scale=1))
                     act_storm = random.random() < 0.3
                     
-                    # Create weather record (convert numpy types to Python types)
+                    # Create weather record (values already converted to Python types)
                     weather_record = Weather(
                         location_id=location_id,
                         timestamp=timestamp,
-                        predicted_rainfall_mm=round(float(pred_rain), 2),
-                        predicted_temperature_c=round(float(pred_temp), 1),
-                        predicted_humidity_percent=round(float(pred_humid), 1),
-                        predicted_windspeed_kmh=round(float(pred_wind), 1),
+                        predicted_rainfall_mm=round(pred_rain, 2),
+                        predicted_temperature_c=round(pred_temp, 1),
+                        predicted_humidity_percent=round(pred_humid, 1),
+                        predicted_windspeed_kmh=round(pred_wind, 1),
                         predicted_storm=pred_storm,
-                        actual_rainfall_mm=round(float(act_rain), 2),
-                        actual_temperature_c=round(float(act_temp), 1),
-                        actual_humidity_percent=round(float(act_humid), 1),
-                        actual_windspeed_kmh=round(float(act_wind), 1),
+                        actual_rainfall_mm=round(act_rain, 2),
+                        actual_temperature_c=round(act_temp, 1),
+                        actual_humidity_percent=round(act_humid, 1),
+                        actual_windspeed_kmh=round(act_wind, 1),
                         actual_storm=act_storm
                     )
                     db.add(weather_record)
@@ -195,7 +195,7 @@ async def generate_realtime_data():
                     else:
                         sentiment_mean = base_sentiment
                     
-                    sentiment = round(np.clip(np.random.normal(loc=sentiment_mean, scale=0.2), -1, 1), 2)
+                    sentiment = float(round(np.clip(np.random.normal(loc=sentiment_mean, scale=0.2), -1, 1), 2))
                     
                     # Post count varies by location and conditions
                     base_posts = 1
@@ -208,12 +208,12 @@ async def generate_realtime_data():
                     
                     post_count = base_posts * post_multiplier
                     
-                    # Create social record (convert numpy types to Python types)
+                    # Create social record (values already converted to Python types)
                     social_record = Social(
                         location_id=location_id,
                         timestamp=timestamp,
                         post_count=int(post_count),
-                        sentiment_score=float(sentiment)
+                        sentiment_score=sentiment
                     )
                     db.add(social_record)
                 

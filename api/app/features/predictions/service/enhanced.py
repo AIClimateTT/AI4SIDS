@@ -242,9 +242,9 @@ def generate_enhanced_predictions(session: Session, location_id: int,
         predictions.append({
             "prediction_timestamp": current_time,
             "predicted_for_time": prediction_time,
-            "predicted_level_m": round(predicted_level, 3),
-            "confidence_score": round(time_confidence, 3),
-            "weather_factor_influence": round(weather_influence, 3),
+            "predicted_level_m": float(round(predicted_level, 3)),
+            "confidence_score": float(round(time_confidence, 3)),
+            "weather_factor_influence": float(round(weather_influence, 3)),
             "predicted_flood_event": flood_event,
             "time_sensor_id": f"{prediction_time.strftime('%Y-%m-%d %H:%M:%S')}-{location.sensor_id}",
             "sensor_id": location.sensor_id,
@@ -342,12 +342,12 @@ def get_enhanced_prediction_accuracy(session: Session, location_id: int, hours_b
     rmse = np.sqrt(np.mean([e**2 for e in errors]))  # Root Mean Square Error
     
     return {
-        "accuracy_percentage": round(accuracy_percentage, 1),
-        "average_error": round(mae, 3),
+        "accuracy_percentage": float(round(accuracy_percentage, 1)),
+        "average_error": float(round(mae, 3)),
         "total_predictions": len(past_predictions),
         "accurate_predictions": accurate_count,
-        "rmse": round(rmse, 3),
-        "mae": round(mae, 3)
+        "rmse": float(round(rmse, 3)),
+        "mae": float(round(mae, 3))
     }
 
 

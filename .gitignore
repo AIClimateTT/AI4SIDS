@@ -6,6 +6,9 @@ __pycache__/
 .Python
 
 # Virtual environments (Python only - at root level)
+env/
+venv/
+ENV/
 .venv/
 venv/
 **/venv/
