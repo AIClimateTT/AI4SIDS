@@ -1,5 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { apiService, dataTransformers } from '../api/client';
+import { env } from '@/lib/env/client';
 import type { AnalyticsData, PredictionStatusData } from '@/lib/types';
 import type {
     ComprehensiveUpdate,
@@ -10,7 +11,6 @@ import type {
     ApiStatus,
     FloodLocation,
 } from '../types';
-import { env } from '@/lib/env/server';
 
 // Query keys for consistent caching
 export const queryKeys = {
@@ -25,14 +25,15 @@ export const queryKeys = {
     predictionStatus: ['prediction-status'] as const,
 } as const;
 
-// Convert environment variables from seconds to milliseconds
+// Convert environment variables from seconds to milliseconds (validated by t3-oss)
 const REFETCH_INTERVAL = env.VITE_REFETCH_INTERVAL * 1000;
 const LOCATIONS_REFETCH_INTERVAL = env.VITE_LOCATIONS_REFETCH_INTERVAL * 1000;
 const ANALYTICS_REFETCH_INTERVAL = env.VITE_ANALYTICS_REFETCH_INTERVAL * 1000;
 const PREDICTION_STATUS_REFETCH_INTERVAL = env.VITE_PREDICTION_STATUS_REFETCH_INTERVAL * 1000;
-const STALE_TIME = env.VITE_STALE_TIME * 1000;
-const RETRY_COUNT = env.VITE_RETRY_COUNT;
-const RETRY_DELAY_BASE = env.VITE_RETRY_DELAY_BASE * 1000;
+const STALE_TIME = (Number(import.meta.env.VITE_STALE_TIME) || 15) * 1000;
+const RETRY_COUNT = Number(import.meta.env.VITE_RETRY_COUNT) || 3;
+const RETRY_DELAY_BASE = (Number(import.meta.env.VITE_RETRY_DELAY_BASE) || 5) * 1000;
+const DATA_FRESH_THRESHOLD = (Number(import.meta.env.VITE_DATA_FRESH_THRESHOLD) || 30) * 1000;
 
 // Retry delay function with exponential backoff
 const retryDelay = (attemptIndex: number) => Math.min(RETRY_DELAY_BASE * 2 ** attemptIndex, 30000);
@@ -235,7 +236,7 @@ export function useDataFreshness() {
     return {
         systemUpdateFreshness: systemUpdateTime ? getTimeSinceUpdate(systemUpdateTime) : 'Never',
         locationsFreshness: locationsUpdateTime ? getTimeSinceUpdate(locationsUpdateTime) : 'Never',
-        isDataFresh: (timestamp: number) => Date.now() - timestamp < (env.VITE_DATA_FRESH_THRESHOLD * 1000),
+        isDataFresh: (timestamp: number) => Date.now() - timestamp < DATA_FRESH_THRESHOLD,
     };
 }
 
