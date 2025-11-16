@@ -32,7 +32,7 @@ import {
 } from '@/lib/utils/riskMapping'
 import { LoginModal } from '@/components/login-modal'
 import { useState } from 'react'
-import type { RealTimeConditions } from '@/lib/api/types'
+import type { RealTimeConditions } from '@/lib/types'
 import 'leaflet/dist/leaflet.css'
 
 // Location Details Component
@@ -401,35 +401,32 @@ const RiskMap = () => {
             </Card>
           </div>
         </div>
-          {/* Advanced Access Banner */}
-            <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 mt-10">
-              <CardContent className="pt-6 text-center">
-                <div className="flex items-start gap-4">
-                  {/* <div className="flex-shrink-0">
+        {/* Advanced Access Banner */}
+        <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 mt-10">
+          <CardContent className="pt-6 text-center">
+            <div className="flex items-start gap-4">
+              {/* <div className="flex-shrink-0">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                       <BarChart3 className="h-6 w-6 text-primary" />
                     </div>
                   </div> */}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-1">
-                      Researchers & Disaster Risk Professionals
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Access advanced analytics, real-time predictions,
-                      historical data analysis, and comprehensive flood
-                      monitoring dashboards designed for professionals.
-                    </p>
-                    <Button
-                      onClick={() => setLoginOpen(true)}
-                      className="gap-2"
-                    >
-                      <Lock className="h-4 w-4" />
-                      Access Advanced Dashboard
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-1">
+                  Researchers & Disaster Risk Professionals
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Access advanced analytics, real-time predictions, historical
+                  data analysis, and comprehensive flood monitoring dashboards
+                  designed for professionals.
+                </p>
+                <Button onClick={() => setLoginOpen(true)} className="gap-2">
+                  <Lock className="h-4 w-4" />
+                  Access Advanced Dashboard
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   )

@@ -1,6 +1,6 @@
 // src/components/sidebar-with-sparklines.tsx
 import React, { useState, useMemo } from 'react'
-import type { SidebarProps } from '@/types'
+import type { SidebarProps } from '@/lib/types'
 import {
   useSystemUpdate,
   useSystemStatus,
@@ -8,18 +8,17 @@ import {
   useDataFreshness,
 } from '@/lib/hooks/useApiData'
 import { dataTransformers } from '@/lib/api/client'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import SparklineCard from '@/components/sparkline-card'
-import type { LocationSummary } from '@/lib/api/types'
+
 
 // Enhanced sidebar with sparklines
 const SidebarWithSparklines: React.FC<SidebarProps> = ({
   onLocationSelect,
   selectedLocation,
 }) => {
-  const [showSystemStatus, setShowSystemStatus] = useState(true)
+ 
   const [showAlerts, setShowAlerts] = useState(true)
   const [expandedSections, setExpandedSections] = useState<{
     [key: string]: boolean
@@ -38,13 +37,9 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
     error: systemError,
   } = useSystemUpdate()
   const {
-    isLoading: statusLoading,
-    activeSensors,
     dataCycleProgress,
-    nextUpdateSeconds,
-    totalAlerts,
   } = useSystemStatus()
-  const { alerts, hasAlerts, criticalAlerts, highAlerts } = useSystemAlerts()
+  const { alerts, hasAlerts } = useSystemAlerts()
   const { systemUpdateFreshness } = useDataFreshness()
 
   // Extract and process locations
@@ -98,76 +93,14 @@ const SidebarWithSparklines: React.FC<SidebarProps> = ({
     )
   }
 
-  const urgentAlerts = [...criticalAlerts, ...highAlerts]
 
   return (
     <div className="w-[420px] bg-gray-50 border-r border-gray-300 shadow-lg h-full overflow-y-auto flex flex-col">
-      {/* Header */}
-      {/* <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-4 flex-shrink-0 shadow-md">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold">AI4SIDS Monitor</h2>
-            <p className="text-sm text-blue-100">
-              Real-time flood risk analysis
-            </p>
-          </div>
-          {urgentAlerts.length > 0 && (
-            <Badge className="bg-red-500 text-white px-2 py-1 animate-pulse">
-              {urgentAlerts.length} Urgent
-            </Badge>
-          )}
-        </div>
-        <div className="text-xs text-blue-200 mt-2">
-          Last update: {systemUpdateFreshness}
-        </div>
-      </div> */}
-
-      {/* System Status Section */}
-      {/* {showSystemStatus && (
-        <div className="p-4 bg-white border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-800">
-              System Status
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSystemStatus(false)}
-              className="h-6 w-6 p-0 hover:bg-gray-100"
-            >
-              ×
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="border border-gray-200 shadow-sm">
-              <CardContent className="p-3 text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {activeSensors}
-                </div>
-                <div className="text-xs text-gray-600 mt-1">Active Sensors</div>
-              </CardContent>
-            </Card>
-            <Card className="border border-gray-200 shadow-sm">
-              <CardContent className="p-3 text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {totalAlerts}
-                </div>
-                <div className="text-xs text-gray-600 mt-1">Total Alerts</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="mt-3 flex items-center justify-between text-xs text-gray-600">
-            <span>Data Cycle: {dataCycleProgress}</span>
-            <span>Next: {nextUpdateSeconds}s</span>
-          </div>
-        </div>
-      )} */}
+     
 
       {/* Alerts Section */}
       {showAlerts && hasAlerts && (
-        <div className="p-4 bg-white border-b border-gray-200 flex-shrink-0">
+        <div className="p-4 bg-white border-b border-gray-200 shrink-0">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-800">
               Active Alerts

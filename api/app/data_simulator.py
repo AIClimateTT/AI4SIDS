@@ -128,12 +128,12 @@ async def generate_realtime_data():
                     new_level = max(prev_level + change, 0)  # Prevent negative levels
                     level_tracker[sensor_id] = new_level
                     
-                    # Create river level record
+                    # Create river level record (convert numpy types to Python types)
                     river_record = RiverLevel(
                         location_id=location_id,
                         timestamp=timestamp,
-                        river_level_m=round(new_level, 2),
-                        change_in_level_m=round(change, 3)
+                        river_level_m=round(float(new_level), 2),
+                        change_in_level_m=round(float(change), 3)
                     )
                     db.add(river_record)
                     
@@ -164,19 +164,19 @@ async def generate_realtime_data():
                     act_humid = pred_humid + np.random.normal(loc=5, scale=1)
                     act_storm = random.random() < 0.3
                     
-                    # Create weather record
+                    # Create weather record (convert numpy types to Python types)
                     weather_record = Weather(
                         location_id=location_id,
                         timestamp=timestamp,
-                        predicted_rainfall_mm=round(pred_rain, 2),
-                        predicted_temperature_c=round(pred_temp, 1),
-                        predicted_humidity_percent=round(pred_humid, 1),
-                        predicted_windspeed_kmh=round(pred_wind, 1),
+                        predicted_rainfall_mm=round(float(pred_rain), 2),
+                        predicted_temperature_c=round(float(pred_temp), 1),
+                        predicted_humidity_percent=round(float(pred_humid), 1),
+                        predicted_windspeed_kmh=round(float(pred_wind), 1),
                         predicted_storm=pred_storm,
-                        actual_rainfall_mm=round(act_rain, 2),
-                        actual_temperature_c=round(act_temp, 1),
-                        actual_humidity_percent=round(act_humid, 1),
-                        actual_windspeed_kmh=round(act_wind, 1),
+                        actual_rainfall_mm=round(float(act_rain), 2),
+                        actual_temperature_c=round(float(act_temp), 1),
+                        actual_humidity_percent=round(float(act_humid), 1),
+                        actual_windspeed_kmh=round(float(act_wind), 1),
                         actual_storm=act_storm
                     )
                     db.add(weather_record)
@@ -208,12 +208,12 @@ async def generate_realtime_data():
                     
                     post_count = base_posts * post_multiplier
                     
-                    # Create social record (one per location per timestamp - fully denormalized)
+                    # Create social record (convert numpy types to Python types)
                     social_record = Social(
                         location_id=location_id,
                         timestamp=timestamp,
-                        post_count=post_count,
-                        sentiment_score=sentiment
+                        post_count=int(post_count),
+                        sentiment_score=float(sentiment)
                     )
                     db.add(social_record)
                 

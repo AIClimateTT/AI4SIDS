@@ -173,3 +173,96 @@ export const mapApiRiskToFrontend = (apiRisk: ApiRiskLevel): FrontendRiskLevel =
             return 'safe';
     }
 };
+
+
+// Analytics and Prediction types
+export interface AnalyticsData {
+    location: {
+        id: number;
+        name: string;
+        latitude: number;
+        longitude: number;
+    };
+    time_range: {
+        hours_back: number;
+        start_time: string;
+        end_time: string;
+    };
+    historical_data: Array<{
+        timestamp: string;
+        river_level_m: number;
+        change_in_level_m: number;
+        flood_risk: string;
+    }>;
+    predictions: Array<{
+        predicted_for_time: string;
+        predicted_level_m: number;
+        confidence_score: number;
+        weather_influence: number;
+        flood_risk: string;
+    }>;
+    summary_stats: {
+        min_level: number;
+        max_level: number;
+        avg_level: number;
+        current_level: number;
+        trend: string;
+    };
+    accuracy_metrics: {
+        accuracy_percentage: number;
+        average_error: number;
+        total_predictions: number;
+        accurate_predictions: number;
+    };
+    data_counts: {
+        historical_points: number;
+        prediction_points: number;
+    };
+}
+
+export interface PredictionStatusData {
+    running: boolean;
+    prediction_interval_seconds: number;
+    cleanup_interval_seconds: number;
+    last_cleanup: string | null;
+    task_active: boolean;
+}
+
+export interface PredictionGenerationResult {
+    success: boolean;
+    message: string;
+    predictions_count?: number;
+    location_id?: number;
+}
+
+// src/types/index.tsx
+
+export type FloodLocation = {
+  name: string
+  lat: number
+  lng: number
+  riskLevel: 'low' | 'moderate' | 'high' | 'critical' | 'safe'
+  // Enhanced fields from API integration
+  sensor_id?: string
+  has_data?: boolean
+  api_risk_level?: string
+}
+
+// Add these to your existing types
+export type SidebarProps = {
+  onLocationSelect: (location: LocationSummary) => void
+  selectedLocation: LocationSummary | null
+}
+
+export type Message = {
+  id: string
+  text: string
+  sender: 'user' | 'bot'
+  timestamp: Date
+}
+
+export type ChatInterfaceProps = {
+  isExpanded?: boolean
+  onToggleExpand?: () => void
+  selectedLocation?: LocationSummary | null
+}

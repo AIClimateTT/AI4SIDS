@@ -8,7 +8,7 @@ import DataAnalytics from '@/components/DataAnalytics'
 import { LocationDetailSheet } from '@/components/location-detail-sheet'
 import { AIChatBotWithButton } from '@/components/AIChatbot'
 import { useSystemUpdate, useSystemAlerts } from '@/lib/hooks/useApiData'
-import type { LocationSummary } from '@/lib/api/types'
+import type { LocationSummary } from '@/lib/types'
 
 export const Route = createFileRoute('/dashboard/')({
   component: RouteComponent,
