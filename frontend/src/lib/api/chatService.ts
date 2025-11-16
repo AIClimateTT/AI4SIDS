@@ -1,10 +1,8 @@
 // Chat service for handling agent responses
 // Switch between static and API responses by changing USE_STATIC_RESPONSES
 
+import { env } from '@/lib/env/client';
 import type { FloodLocation , LocationSummary} from '@/lib/types';
-
-
-import { env } from '../env/server';
 
 export interface ChatMessage {
     role: 'user' | 'assistant';
@@ -46,7 +44,10 @@ class ChatService {
 
         let response: ChatResponse;
 
-        if (env.VITE_USE_STATIC_RESPONSES) {
+        // Check if using static responses (validated client env)
+        const useStaticResponses = env.VITE_USE_STATIC_RESPONSES;
+
+        if (useStaticResponses) {
             // Use static responses (current implementation)
             response = await this.getStaticResponse(request);
         } else {
@@ -167,7 +168,8 @@ class ChatService {
      */
     private async getApiResponse(request: ChatRequest): Promise<ChatResponse> {
         try {
-            const response = await fetch(`${env.VITE_CHAT_API_BASE_URL}/api/chat`, {
+            const chatApiBaseUrl = env.VITE_CHAT_API_BASE_URL;
+            const response = await fetch(`${chatApiBaseUrl}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

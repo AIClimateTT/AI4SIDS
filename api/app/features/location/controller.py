@@ -7,7 +7,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from app.core.db import SessionDep
-from app.features.location.schemas import (
+from app.features.location.models import (
     RealTimeConditions, ComprehensiveUpdate, LocationHistory, 
     LocationTimeline, LocationsResponse
 )
