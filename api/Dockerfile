@@ -18,8 +18,13 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install dependencies
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
 # Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/go/dockerfile-user-best-practices/
 ARG UID=10001
 RUN adduser \
     --disabled-password \
@@ -30,22 +35,14 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-# Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
-# Leverage a bind mount to requirements.txt to avoid having to copy them into
-# into this layer.
-RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install -r requirements.txt
+# Copy the source code into the container.
+COPY . .
 
 # Switch to the non-privileged user to run the application.
 USER appuser
 
-# Copy the source code into the container.
-COPY . .
-
 # Expose the port that the application listens on.
 EXPOSE 8080
 
-# Run the application.
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8081", "--reload"]
+# Run the application (Railway uses PORT environment variable)
+CMD uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}
