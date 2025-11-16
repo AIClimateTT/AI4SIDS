@@ -5,11 +5,11 @@ __pycache__/
 *.so
 .Python
 
-# Virtual environments
+# Virtual environments (Python only - at root level)
 .venv/
 venv/
-ENV/
-env/
+**/venv/
+**/.venv/
 
 # IDEs
 .vscode/
