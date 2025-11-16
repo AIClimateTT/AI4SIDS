@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, Tuple, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from app.models import Location, RiverLevel, Weather, RiverPrediction, WeekForecast, simulate_7_day_forecast
+from app.models import Location, RiverLevel, Weather, RiverPrediction, WeekForecast
 
 
 # Configuration constants

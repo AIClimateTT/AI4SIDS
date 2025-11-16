@@ -10,11 +10,12 @@ from app.models.locations import Location
 from app.models.river_levels import RiverLevel
 from app.models.weather import Weather
 from app.models.social import Social
+from app.core.config import settings
 
 # Configuration: Cycle interval in seconds
 # Set via environment variable for easy deployment adjustment
-CYCLE_INTERVAL = int(os.getenv("DATA_CYCLE_INTERVAL", "3600"))  # Default: 1 hour
-ENABLE_BACKGROUND_TASK = os.getenv("ENABLE_BACKGROUND_TASK", "false").lower() == "true"
+CYCLE_INTERVAL = settings.DATA_CYCLE_INTERVAL  # Default: 1 hour
+ENABLE_BACKGROUND_TASK = settings.ENABLE_BACKGROUND_TASK
 
 # Define sensor locations - matches your existing sensor network
 SENSOR_LOCATIONS = {

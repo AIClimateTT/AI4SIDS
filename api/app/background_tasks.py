@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.models import Location, RiverPrediction
-from app.enhanced_prediction_service import generate_predictions, store_predictions, cleanup_old_predictions
+from app.features.predictions.service.enhanced import generate_predictions, store_predictions, cleanup_old_predictions
 
 logger = logging.getLogger(__name__)
 

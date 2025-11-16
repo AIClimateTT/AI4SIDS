@@ -11,13 +11,8 @@ from app.features.location.models import (
     RealTimeConditions, ComprehensiveUpdate, LocationHistory, 
     LocationTimeline, LocationsResponse
 )
-from app.features.location.service import (
-    get_latest_river_data, get_latest_weather_data, get_latest_social_data,
-    get_location_history_data, get_all_locations, get_location_timeline_data,
-    generate_system_alerts, calculate_flood_risk, generate_contextual_posts,
-    get_data_statistics
-)
-
+from . import models
+from . import service
 router = APIRouter(prefix="/api", tags=["locations"])
 
 
@@ -26,19 +21,19 @@ async def get_real_time_conditions(location: str, session: SessionDep):
     """Get comprehensive real-time conditions for a location"""
     try:
         # Get current data for location
-        river_point = get_latest_river_data(session, location)
-        weather_point = get_latest_weather_data(session, location)
-        social_point = get_latest_social_data(session, location)
+        river_point = service.get_latest_river_data(session, location)
+        weather_point = service.get_latest_weather_data(session, location)
+        social_point = service.get_latest_social_data(session, location)
         
         if not river_point:
             raise HTTPException(status_code=404, detail=f"No river data found for {location}")
         
         current_time = datetime.now(timezone.utc)
-        flood_risk = calculate_flood_risk(river_point.river_level_m)
+        flood_risk = service.calculate_flood_risk(river_point.river_level_m)
         
         # Generate contextual social posts
         sentiment_score = social_point.sentiment_score if social_point else -0.3
-        posts = generate_contextual_posts(location, sentiment_score, {
+        posts = service.generate_contextual_posts(location, sentiment_score, {
             "river_level": river_point.river_level_m,
             "rainfall": weather_point.actual_rainfall_mm if weather_point else 1.0
         })
@@ -88,12 +83,12 @@ async def get_system_update(session: SessionDep):
     """Get comprehensive system update for all locations"""
     try:
         locations_data = []
-        locations = get_all_locations(session)
+        locations = service.get_all_locations(session)
         
         for location in locations:
-            river_point = get_latest_river_data(session, location.name)
+            river_point = service.get_latest_river_data(session, location.name)
             if river_point:
-                flood_risk = calculate_flood_risk(river_point.river_level_m)
+                flood_risk = service.calculate_flood_risk(river_point.river_level_m)
                 locations_data.append({
                     "name": location.name,
                     "flood_risk": flood_risk,
@@ -106,7 +101,7 @@ async def get_system_update(session: SessionDep):
                     "last_updated": datetime.now(timezone.utc).isoformat()
                 })
         
-        alerts = generate_system_alerts(session)
+        alerts = service.generate_system_alerts(session)
         
         return ComprehensiveUpdate(
             locations=locations_data,
@@ -128,7 +123,7 @@ async def get_system_update(session: SessionDep):
 async def get_location_timeline(session: SessionDep, location: str, minutes: int = 5):
     """Get timeline data for location"""
     try:
-        timeline_data = get_location_timeline_data(session, location, minutes)
+        timeline_data = service.get_location_timeline_data(session, location, minutes)
         if not timeline_data:
             raise HTTPException(status_code=404, detail=f"No data found for {location}")
         
@@ -144,7 +139,7 @@ async def get_location_timeline(session: SessionDep, location: str, minutes: int
                 "timestamp": timestamp.isoformat(),
                 "river_level": point.river_level_m,
                 "change_rate": point.change_in_level_m,
-                "flood_risk": calculate_flood_risk(point.river_level_m),
+                "flood_risk": service.calculate_flood_risk(point.river_level_m),
                 "minutes_ago": i // 4
             })
         
@@ -170,7 +165,7 @@ async def get_location_history(session: SessionDep, location: str, points: int =
         # Limit points to prevent overload
         points = min(points, 100)
         
-        history_data = get_location_history_data(session, location, points)
+        history_data = service.get_location_history_data(session, location, points)
         if not history_data:
             raise HTTPException(status_code=404, detail=f"No data found for {location}")
         
@@ -199,7 +194,7 @@ async def get_location_history(session: SessionDep, location: str, points: int =
             trend_percentage = 0
         
         current_level = history[-1]["value"] if history else 0
-        current_risk = calculate_flood_risk(current_level)
+        current_risk = service.calculate_flood_risk(current_level)
         
         return LocationHistory(
             location=location,
@@ -234,12 +229,12 @@ async def get_location_history(session: SessionDep, location: str, points: int =
 async def get_available_locations(session: SessionDep):
     """Get list of available locations with current status"""
     try:
-        locations = get_all_locations(session)
+        locations = service.get_all_locations(session)
         locations_data = []
         
         for location in locations:
-            river_point = get_latest_river_data(session, location.name)
-            current_risk = calculate_flood_risk(river_point.river_level_m) if river_point else "UNKNOWN"
+            river_point = service.get_latest_river_data(session, location.name)
+            current_risk = service.calculate_flood_risk(river_point.river_level_m) if river_point else "UNKNOWN"
             
             locations_data.append({
                 "name": location.name,
@@ -260,7 +255,7 @@ async def get_available_locations(session: SessionDep):
 async def get_data_statistics_endpoint(session: SessionDep):
     """Get database statistics for monitoring"""
     try:
-        stats = get_data_statistics(session)
+        stats = service.get_data_statistics(session)
         return {
             "status": "success",
             "statistics": stats

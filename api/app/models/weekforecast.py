@@ -7,7 +7,7 @@ import math
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, Float, DateTime, Date, JSON, ForeignKey
 from sqlalchemy.orm import relationship, Session
-from app.entities.base import Base  # <-- uses your shared declarative base
+from app.models import Base  # <-- uses your shared declarative base
 
 # -----------------------
 # SQLAlchemy model

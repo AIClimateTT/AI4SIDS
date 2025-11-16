@@ -6,7 +6,7 @@ import asyncio
 
 from app.core.db import init_db
 from app.data_simulator import generate_realtime_data
-from app.features.location.contoller import router as location_router
+from app.features.location.controller import router as location_router
 from app.features.analytics.controller import router as analytics_router
 from app.background_tasks import start_prediction_tasks, stop_prediction_tasks
 

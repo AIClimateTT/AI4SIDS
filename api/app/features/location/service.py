@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from app.models import Location, RiverLevel, Weather, Social, RiverPrediction
-from app.enhanced_prediction_service import generate_predictions, store_predictions, get_prediction_accuracy
+from app.features.predictions.service.enhanced import generate_predictions, store_predictions, get_prediction_accuracy
 
 
 def calculate_flood_risk(river_level: float) -> str:
