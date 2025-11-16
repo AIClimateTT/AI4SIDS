@@ -17,22 +17,31 @@ async def lifespan(app: FastAPI):
     print("🚀 Initializing AI4SIDS Real-Time API...")
     
     # Initialize database
-    init_db()
+    print("📊 Connecting to database...")
+    try:
+        init_db()
+        print("✅ Database connection established")
+    except Exception as e:
+        print(f"⚠️  Database initialization warning: {e}")
+        print("   API will continue, but database operations may fail")
     
     # Load initial data from JSON files if available
     # await load_all_data()
     
-    # Start real-time data generation
+    # Start real-time data generation (non-blocking)
+    print("🌊 Starting data generation task...")
     asyncio.create_task(generate_realtime_data())
     
-    # Start background prediction generation tasks
-    await start_prediction_tasks()
+    # Start background prediction generation tasks (non-blocking)
+    print("🔮 Starting prediction tasks...")
+    asyncio.create_task(start_prediction_tasks())
     
     print("✅ AI4SIDS Real-Time API started successfully")
-    print("📊 Database: SQLite with real-time data simulation")
-    print("🌊 Real-time generation: Every 15 seconds")
-    print("🔮 Prediction generation: Every 5 minutes")
+    print("📊 Database: Connected")
+    print("🌊 Real-time generation: Controlled via ENABLE_BACKGROUND_TASK")
+    print("🔮 Prediction generation: Running in background")
     print("🧹 Auto-cleanup: Keep last 24 hours of data")
+    print("🌐 Server ready to accept requests")
     
     yield
     
