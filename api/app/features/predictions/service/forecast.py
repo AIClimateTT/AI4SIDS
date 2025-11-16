@@ -281,9 +281,9 @@ def predict_river(
                 "latitude": _coerce_float(lat, None),
                 "longitude": _coerce_float(lon, None),
                 "location": loc,
-                "predicted_river_level_m": round(lvl, 2),
+                "predicted_river_level_m": float(round(lvl, 2)),
                 # per-step change (approx): slope/sec * step_s
-                "predicted_change_in_level_m": round(a * step_s, 3),
+                "predicted_change_in_level_m": float(round(a * step_s, 3)),
                 "predicted_flood_event": flood,
             })
     return preds
