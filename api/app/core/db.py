@@ -7,8 +7,23 @@ from typing import Annotated
 from app.core.config import settings
 from app.models import Base
 
-# Database configuration
-engine = create_engine(settings.DATABASE_URL,)
+# Database configuration with connection pooling and timeouts
+# For PostgreSQL: use proper pool settings to avoid connection hanging
+engine_kwargs = {
+    "pool_pre_ping": True,  # Verify connections before using them
+    "pool_recycle": 300,    # Recycle connections after 5 minutes
+    "connect_args": {
+        "connect_timeout": 10,  # 10 second connection timeout
+    }
+}
+
+# For SQLite: simpler configuration
+if settings.DATABASE_URL.startswith("sqlite"):
+    engine_kwargs = {
+        "connect_args": {"check_same_thread": False}
+    }
+
+engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
