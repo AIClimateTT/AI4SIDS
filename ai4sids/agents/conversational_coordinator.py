@@ -587,7 +587,9 @@ class ConversationalCoordinator:
             'yes', 'no', 'okay', 'thanks', 'tell me more',
             'can you tell me more', 'tell me about', 'what do you mean',
             'you mentioned', 'you said', 'as you mentioned', 'as you said',
-            'earlier you', 'why is', 'how is', 'where is'
+            'earlier you', 'why is', 'how is', 'where is',
+            'suggest', 'recommend', 'advice', 'evasive', 'actions',
+            'what can i', 'how can i', 'what do i'
         ]
 
         # Pronouns and references that indicate follow-up
@@ -634,8 +636,8 @@ class ConversationalCoordinator:
         intent = self._determine_intent(user_message)
         location = self._extract_location_from_query(user_message)
 
-        # Use last location if not specified and we have context
-        if not location and self.last_location:
+        # Use last location ONLY for follow-up questions, not for new topics
+        if not location and self.last_location and is_follow_up:
             location = self.last_location
 
         print(f" Intent: {intent}, Location: {location}, Follow-up: {is_follow_up}")
