@@ -17,13 +17,13 @@ def assess_flood_risk(sensor_data: Dict, location: str) -> Dict[str, Any]:
     Returns:
         Risk assessment with level, score, and factors
     """
-    print(f"🌊 Assessing flood risk for: {location}")
-    
+    print(f"[RISK] Assessing flood risk for: {location}")
+
     raw_data = sensor_data.get('raw_data', [])
     location_data = [d for d in raw_data if d.get('Location') == location]
-    
+
     if not location_data:
-        print(f"⚠️  No data found for {location}")
+        print(f"[WARNING] No data found for {location}")
         return {
             "location": location,
             "risk_level": "unknown",
@@ -93,18 +93,18 @@ def assess_flood_risk(sensor_data: Dict, location: str) -> Dict[str, Any]:
     }
     
     # Print assessment
-    risk_emoji = {
-        "critical": "🔴",
-        "high": "🟠",
-        "moderate": "🟡",
-        "low": "🟢",
-        "unknown": "⚪"
+    risk_markers = {
+        "critical": "[CRITICAL]",
+        "high": "[HIGH]",
+        "moderate": "[MODERATE]",
+        "low": "[LOW]",
+        "unknown": "[UNKNOWN]"
     }
-    
-    print(f"   {risk_emoji[risk_level]} Risk Level: {risk_level.upper()}")
-    print(f"   📊 Risk Score: {risk_score}/100")
+
+    print(f"   {risk_markers[risk_level]} Risk Level: {risk_level.upper()}")
+    print(f"   Risk Score: {risk_score}/100")
     if risk_factors:
-        print(f"   ⚠️  Factors: {', '.join(risk_factors)}")
+        print(f"   Factors: {', '.join(risk_factors)}")
     
     return result
 
@@ -193,7 +193,7 @@ def generate_recommendations(risk_level: str) -> List[str]:
             "Check on vulnerable neighbors"
         ],
         "critical": [
-            "⚠️ EVACUATE IMMEDIATELY if instructed by authorities",
+            "EVACUATE IMMEDIATELY if instructed by authorities",
             "Move to designated emergency shelter NOW",
             "Do NOT attempt to cross flooded areas",
             "Follow emergency services instructions precisely",

@@ -147,7 +147,25 @@ async def chat_completions(request: ChatCompletionRequest) -> ChatCompletionResp
         if not request.messages:
             raise HTTPException(status_code=400, detail="No messages provided")
 
-        user_message = request.messages[-1].content
+        user_message_raw = request.messages[-1].content
+
+        # Extract actual user query from OpenWebUI's RAG wrapper if present
+        import re
+
+        # Try multiple patterns to extract the actual user message
+        # Pattern 1: <chat_history>USER: message</chat_history>
+        chat_history_match = re.search(r'<chat_history>\s*USER:\s*(.+?)\s*</chat_history>', user_message_raw, re.DOTALL | re.IGNORECASE)
+        if chat_history_match:
+            user_message = chat_history_match.group(1).strip()
+        else:
+            # Pattern 2: Look for "USER: message" followed by newline or ASSISTANT:
+            user_match = re.search(r'USER:\s*([^\n]+?)(?:\s*(?:\n|ASSISTANT:))', user_message_raw, re.IGNORECASE)
+            if user_match:
+                user_message = user_match.group(1).strip()
+            else:
+                # If no pattern matches, use the raw message
+                user_message = user_message_raw
+
         conversation_history = [
             {"role": msg.role, "content": msg.content}
             for msg in request.messages[:-1]
@@ -156,7 +174,12 @@ async def chat_completions(request: ChatCompletionRequest) -> ChatCompletionResp
         print(f"\n{'='*60}")
         print(f"New Chat Request")
         print(f"{'='*60}")
-        print(f"User: {user_message}")
+        # Handle Unicode characters safely in print
+        try:
+            print(f"User: {user_message}")
+        except UnicodeEncodeError:
+            safe_message = user_message.encode('ascii', errors='replace').decode('ascii')
+            print(f"User: {safe_message}")
 
         # Process message through coordinator
         response_content = coord.process_message(
@@ -164,7 +187,11 @@ async def chat_completions(request: ChatCompletionRequest) -> ChatCompletionResp
             conversation_history=conversation_history
         )
 
-        print(f"\nResponse: {response_content[:100]}...")
+        try:
+            print(f"\nResponse: {response_content[:100]}...")
+        except UnicodeEncodeError:
+            safe_response = response_content[:100].encode('ascii', errors='replace').decode('ascii')
+            print(f"\nResponse: {safe_response}...")
         print(f"{'='*60}\n")
 
         # Create OpenAI-compatible response
