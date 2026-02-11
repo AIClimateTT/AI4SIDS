@@ -1,0 +1,140 @@
+services:
+  # ---------------------------------------------------------------
+  # Data Backend API — simulated sensor, river, social media data
+  # ---------------------------------------------------------------
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: ai4sids-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ENABLE_BACKGROUND_TASK=true
+      - DATA_CYCLE_INTERVAL=15 # seconds
+      - DATABASE_URL=sqlite:////app/db/ai4sids_demo.db
+    volumes:
+      - api-db:/app/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/locations"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------
+  # RAG Service — distributed agents + OpenAI-compatible API
+  # ---------------------------------------------------------------
+  rag:
+    build:
+      context: ./rag
+      dockerfile: Dockerfile
+    container_name: ai4sids-rag
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./rag/.env
+    environment:
+      # Backend URL inside Docker network
+      - DATA_BACKEND_URL=http://api:8080
+      # Uncomment ONE of these LLM options:
+      #
+      # Option A: Local Ollama (also uncomment the ollama service below)
+      # - OLLAMA_BASE_URL=http://ollama:11434
+      # - LLM_MODEL=llama3.2
+      #
+      # Option B: External OpenAI-compatible endpoint (e.g. colleague's OpenWebUI)
+      # - OPENAI_API_BASE_URL=https://their-openwebui-url.com/api
+      # - OPENAI_API_KEY=sk-their-key
+      # - LLM_MODEL=model-name
+      #
+      # Option C: NVIDIA NIM
+      # - NVIDIA_API_KEY=nvapi-...
+    volumes:
+      - ./rag/data:/app/data
+      - ./rag/logs:/app/logs
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------
+  # Frontend — React dashboard
+  # ---------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # These are baked into the browser bundle at build time.
+        # They must be URLs the USER'S BROWSER can reach — not Docker service names.
+        # If running locally: http://localhost:8080 and http://localhost:8000
+        # If deploying publicly: use your server's public IP or domain.
+        - VITE_API_URL=http://localhost:8080
+        - VITE_CHAT_API_BASE_URL=http://localhost:8000
+        - VITE_BASE_URL=http://localhost:3001
+    container_name: ai4sids-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------
+  # Open WebUI — chat interface for the RAG (optional)
+  # Uncomment this if you want a chat UI for the RAG service.
+  # ---------------------------------------------------------------
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   container_name: ai4sids-webui
+  #   ports:
+  #     - "3001:8080"
+  #   environment:
+  #     - OPENAI_API_BASE_URL=http://rag:8000/v1
+  #     - OPENAI_API_KEY=not-needed
+  #     - WEBUI_NAME=AI4SIDS Climate Assistant
+  #     - DEFAULT_MODELS=ai4sids-climate-assistant
+  #   volumes:
+  #     - open-webui-data:/app/backend/data
+  #   depends_on:
+  #     rag:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+  # ---------------------------------------------------------------
+  # Ollama — local LLM provider (optional)
+  # Uncomment this if using local Ollama instead of an external LLM.
+  # Also uncomment the ollama env vars in the rag service above
+  # and add: depends_on: ollama: condition: service_healthy
+  # ---------------------------------------------------------------
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ai4sids-ollama
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "ollama", "list"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+volumes:
+  api-db:
+    driver: local
+#   ollama_data:
+#     driver: local
+#   open-webui-data:
+#     driver: local
+
+networks:
+  default:
+    name: ai4sids-network

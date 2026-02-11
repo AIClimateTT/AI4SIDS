@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # Ollama - Local LLM provider
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai4sids-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AI4SIDS Data Backend - Serves live/simulated sensor data
+  ai4sids-data-backend:
+    build:
+      context: ../ai4sids-app/api
+      dockerfile: Dockerfile
+    container_name: ai4sids-data-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ENABLE_BACKGROUND_TASK=true
+      - DATA_CYCLE_INTERVAL=3600
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/locations"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AI4SIDS RAG - Conversational AI with distributed agents
+  ai4sids-rag:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai4sids-rag
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - LLM_MODEL=llama3.2
+      - DATA_BACKEND_URL=http://ai4sids-data-backend:8080
+      - OPENWEBUI_API_KEY=sk-aea2d955be6a4c6ba5623e92f736be94
+    volumes:
+      - ./data:/app/data:ro
+      - ./logs:/app/logs
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ai4sids-data-backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Open WebUI - Chat interface
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ai4sids-webui
+    ports:
+      - "3000:8080"
+    environment:
+      - OPENAI_API_BASE_URL=http://ai4sids-rag:8000/v1
+      - OPENAI_API_KEY=sk-aea2d955be6a4c6ba5623e92f736be94
+      - WEBUI_NAME=AI4SIDS Climate Assistant
+      - DEFAULT_MODELS=ai4sids-climate-assistant
+    volumes:
+      - open-webui-data:/app/backend/data
+    depends_on:
+      ai4sids-rag:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+    driver: local
+  open-webui-data:
+    driver: local
+
+networks:
+  default:
+    name: ai4sids-network

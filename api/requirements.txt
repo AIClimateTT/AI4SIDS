@@ -1,0 +1,12 @@
+fastapi[standard]
+python-dotenv==1.0.1
+python-multipart==0.0.20
+pydantic
+pydantic-settings
+uvicorn==0.34.0
+itsdangerous==2.2.0
+psycopg2-binary
+pytz>=2025.1
+pandas
+alembic
+numpy
