@@ -7,8 +7,6 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: ai4sids-api
-    ports:
-      - "8080:8080"
     environment:
       - ENABLE_BACKGROUND_TASK=true
       - DATA_CYCLE_INTERVAL=15 # seconds
@@ -30,8 +28,6 @@ services:
       context: ./rag
       dockerfile: Dockerfile
     container_name: ai4sids-rag
-    ports:
-      - "8000:8000"
     env_file:
       - ./rag/.env
     environment:
@@ -72,15 +68,12 @@ services:
       dockerfile: Dockerfile
       args:
         # These are baked into the browser bundle at build time.
-        # They must be URLs the USER'S BROWSER can reach — not Docker service names.
-        # If running locally: http://localhost:8080 and http://localhost:8000
-        # If deploying publicly: use your server's public IP or domain.
-        - VITE_API_URL=http://localhost:8080
-        - VITE_CHAT_API_BASE_URL=http://localhost:8000
-        - VITE_BASE_URL=http://localhost:3001
+        # Set DOMAIN in the root .env file before running docker compose up --build.
+        # DOMAIN must be the public hostname/IP the user's browser uses to reach this server.
+        - VITE_API_URL=http://${DOMAIN}/api
+        - VITE_CHAT_API_BASE_URL=http://${DOMAIN}/rag
+        - VITE_BASE_URL=http://${DOMAIN}
     container_name: ai4sids-frontend
-    ports:
-      - "3000:3000"
     depends_on:
       api:
         condition: service_healthy
@@ -90,22 +83,37 @@ services:
   # Open WebUI — chat interface for the RAG (optional)
   # Uncomment this if you want a chat UI for the RAG service.
   # ---------------------------------------------------------------
-  # open-webui:
-  #   image: ghcr.io/open-webui/open-webui:main
-  #   container_name: ai4sids-webui
-  #   ports:
-  #     - "3001:8080"
-  #   environment:
-  #     - OPENAI_API_BASE_URL=http://rag:8000/v1
-  #     - OPENAI_API_KEY=not-needed
-  #     - WEBUI_NAME=AI4SIDS Climate Assistant
-  #     - DEFAULT_MODELS=ai4sids-climate-assistant
-  #   volumes:
-  #     - open-webui-data:/app/backend/data
-  #   depends_on:
-  #     rag:
-  #       condition: service_healthy
-  #   restart: unless-stopped
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ai4sids-webui
+    environment:
+      - OPENAI_API_BASE_URL=http://rag:8000/v1
+      - OPENAI_API_KEY=not-needed
+      - WEBUI_NAME=AI4SIDS Climate Assistant
+      - DEFAULT_MODELS=ai4sids-climate-assistant
+    volumes:
+      - open-webui-data:/app/backend/data
+    depends_on:
+      rag:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------
+  # Nginx — reverse proxy (single public entry point on port 80)
+  # ---------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: ai4sids-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - api
+      - rag
+      - open-webui
+    restart: unless-stopped
 
   # ---------------------------------------------------------------
   # Ollama — local LLM provider (optional)
@@ -130,9 +138,9 @@ services:
 volumes:
   api-db:
     driver: local
+  open-webui-data:
+    driver: local
 #   ollama_data:
-#     driver: local
-#   open-webui-data:
 #     driver: local
 
 networks:
