@@ -2,8 +2,8 @@
 ai4sids_env/
 .venv/
 venv/
-env/
-ENV/
+
+
 
 # Python cache files
 __pycache__/
