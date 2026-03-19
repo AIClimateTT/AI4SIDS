@@ -14,10 +14,15 @@ class Settings(BaseSettings):
     )
     # Database
     DATABASE_URL: str = "sqlite:///./ai4sids_demo.db"
-    
+
+    # Auth
+    SECRET_KEY: str = "changeme-please-set-a-real-secret-in-env"
+    DEFAULT_USER_EMAIL: str = "researcher@ai4sids.org"
+    DEFAULT_USER_PASSWORD: str = "demo2024"
+
     # Demo settings
     DATA_CYCLE_INTERVAL: int = 15
-    
+
     # API settings
     API_TITLE: str = "AI4SIDS Real-Time Flood Monitoring API"
     API_VERSION: str = "2.0.0"

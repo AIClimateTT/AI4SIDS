@@ -5,5 +5,6 @@ from app.models.weather import Weather
 from app.models.social import Social
 from app.models.river_predictions import RiverPrediction
 from app.models.weekforecast import WeekForecast
+from app.models.user import User
 
-__all__ = ["Base", "Location", "RiverLevel", "Weather", "Social", "RiverPrediction", "WeekForecast"]
+__all__ = ["Base", "Location", "RiverLevel", "Weather", "Social", "RiverPrediction", "WeekForecast", "User"]
