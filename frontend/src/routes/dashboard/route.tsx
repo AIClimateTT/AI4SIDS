@@ -1,15 +1,29 @@
-import { createFileRoute, Outlet, Link } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useNavigate, redirect } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { LogOut, BarChart3 } from 'lucide-react'
+import { useAuth } from '@/lib/auth/AuthContext'
 
 export const Route = createFileRoute('/dashboard')({
+  beforeLoad: () => {
+    const token = localStorage.getItem('ai4sids_token')
+    if (!token) {
+      throw redirect({ to: '/' })
+    }
+  },
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate({ to: '/' })
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Dashboard Header */}
       <header className="border-b bg-card">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
@@ -25,21 +39,16 @@ function RouteComponent() {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium">Research Access</p>
-              <p className="text-xs text-muted-foreground">
-                Authenticated User
-              </p>
+              <p className="text-xs text-muted-foreground">Authenticated User</p>
             </div>
-            <Link to='/'>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
-            </Link>
           </div>
         </div>
       </header>
 
-      {/* Dashboard Content */}
       <div className="flex-1">
         <Outlet />
       </div>

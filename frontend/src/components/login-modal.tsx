@@ -12,12 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Lock, Mail, AlertCircle, BarChart3 } from 'lucide-react'
-
-// Demo credentials (hardcoded for demo purposes)
-const DEMO_CREDENTIALS = {
-  email: 'researcher@ai4sids.org',
-  password: 'demo2024',
-}
+import { useAuth } from '@/lib/auth/AuthContext'
 
 interface LoginModalProps {
   open: boolean
@@ -26,6 +21,7 @@ interface LoginModalProps {
 
 export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -36,31 +32,15 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     setError('')
     setIsLoading(true)
 
-    // Simulate network delay for realism
-    await new Promise((resolve) => setTimeout(resolve, 800))
-
-    if (
-      email === DEMO_CREDENTIALS.email &&
-      password === DEMO_CREDENTIALS.password
-    ) {
-      // Store auth state (in a real app, this would be a token)
-      localStorage.setItem('ai4sids_auth', 'true')
-
-      // Close modal and navigate to dashboard
+    try {
+      await login(email, password)
       onOpenChange(false)
       navigate({ to: '/dashboard' })
-    } else {
-      setError(
-        'Invalid email or password. Please try the demo credentials below.',
-      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed')
+    } finally {
       setIsLoading(false)
     }
-  }
-
-  const fillDemoCredentials = () => {
-    setEmail(DEMO_CREDENTIALS.email)
-    setPassword(DEMO_CREDENTIALS.password)
-    setError('')
   }
 
   return (
@@ -116,29 +96,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          {/* Demo credentials helper */}
-          <div className="bg-muted p-3 rounded-md border">
-            <div className="text-sm font-medium mb-2">Demo Access:</div>
-            <div className="text-xs space-y-1 text-muted-foreground">
-              <div>
-                <strong>Email:</strong> {DEMO_CREDENTIALS.email}
-              </div>
-              <div>
-                <strong>Password:</strong> {DEMO_CREDENTIALS.password}
-              </div>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2 w-full"
-              onClick={fillDemoCredentials}
-              disabled={isLoading}
-            >
-              Fill Demo Credentials
-            </Button>
-          </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
