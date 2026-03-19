@@ -5,18 +5,20 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
-
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 const config = defineConfig({
   plugins: [
-    tanstackStart(),
-    nitro({ 
-      preset: 'node-server',            
-    }),
+    tailwindcss(),
+    // tanstackStart(),
+    // nitro({ 
+    //   preset: 'node-server',            
+    // }),
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     devtools(),
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
-    tailwindcss(),
+    
     viteReact(),
   ],
 })
