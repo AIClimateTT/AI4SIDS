@@ -12,11 +12,17 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 
 # Install dependencies
 RUN python -m pip install --no-cache-dir -r requirements.txt
+
+# Need curl for healthcheck 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create a non-privileged user that the app will run under.
 ARG UID=10001

@@ -6,7 +6,6 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: ai4sids-api
     environment:
       - ENABLE_BACKGROUND_TASK=true
       - DATA_CYCLE_INTERVAL=15 # seconds
@@ -15,11 +14,16 @@ services:
       - api-db:/app/db
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/locations"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai4sidsapi.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.ai4sidsapi.entrypoints=websecure"
+      - "traefik.http.routers.ai4sidsapi.tls=true"
+      - "traefik.http.routers.ai4sidsapi.tls.certresolver=letsencrypt"
   # ---------------------------------------------------------------
   # RAG Service — distributed agents + OpenAI-compatible API
   # ---------------------------------------------------------------
@@ -31,21 +35,10 @@ services:
     env_file:
       - ./rag/.env
     environment:
-      # Backend URL inside Docker network
       - DATA_BACKEND_URL=http://api:8080
-      # Uncomment ONE of these LLM options:
-      #
-      # Option A: Local Ollama (also uncomment the ollama service below)
-      # - OLLAMA_BASE_URL=http://ollama:11434
-      # - LLM_MODEL=llama3.2
-      #
-      # Option B: External OpenAI-compatible endpoint (e.g. colleague's OpenWebUI)
-      # - OPENAI_API_BASE_URL=https://their-openwebui-url.com/api
-      # - OPENAI_API_KEY=sk-their-key
-      # - LLM_MODEL=model-name
-      #
-      # Option C: NVIDIA NIM
-      # - NVIDIA_API_KEY=nvapi-...
+      - OPENAI_API_BASE_URL=http://gpt_oss_nim:8000/v1
+      - OPENAI_API_KEY=none-needed
+      - LLM_MODEL=openai/gpt-oss-20b
     volumes:
       - ./rag/data:/app/data
       - ./rag/logs:/app/logs
@@ -58,7 +51,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai4sidsrag.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/rag/`)"
+      - "traefik.http.middlewares.ai4sidsrag-stripprefix.stripprefix.prefixes=/rag"
+      - "traefik.http.routers.ai4sidsrag.middlewares=ai4sidsrag-stripprefix"
+      - "traefik.http.routers.ai4sidsrag.entrypoints=websecure"
+      - "traefik.http.routers.ai4sidsrag.tls=true"
+      - "traefik.http.routers.ai4sidsrag.tls.certresolver=letsencrypt"
   # ---------------------------------------------------------------
   # Frontend — React dashboard
   # ---------------------------------------------------------------
@@ -70,50 +70,38 @@ services:
         # These are baked into the browser bundle at build time.
         # Set DOMAIN in the root .env file before running docker compose up --build.
         # DOMAIN must be the public hostname/IP the user's browser uses to reach this server.
-        - VITE_API_URL=http://${DOMAIN}/api
-        - VITE_CHAT_API_BASE_URL=http://${DOMAIN}/rag
-        - VITE_BASE_URL=http://${DOMAIN}
+        - VITE_API_URL=https://${DOMAIN_NAME}
+        - VITE_CHAT_API_BASE_URL=https://${DOMAIN_NAME}/rag
+        - VITE_BASE_URL=https://${DOMAIN_NAME}
     container_name: ai4sids-frontend
     depends_on:
       api:
         condition: service_healthy
     restart: unless-stopped
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai4sidsfrontend.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.ai4sidsfrontend.entrypoints=websecure"
+      - "traefik.http.routers.ai4sidsfrontend.tls=true"
+      - "traefik.http.routers.ai4sidsfrontend.tls.certresolver=letsencrypt"
   # ---------------------------------------------------------------
   # Open WebUI — chat interface for the RAG (optional)
   # Uncomment this if you want a chat UI for the RAG service.
   # ---------------------------------------------------------------
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: ai4sids-webui
-    environment:
-      - OPENAI_API_BASE_URL=http://rag:8000/v1
-      - OPENAI_API_KEY=not-needed
-      - WEBUI_NAME=AI4SIDS Climate Assistant
-      - DEFAULT_MODELS=ai4sids-climate-assistant
-    volumes:
-      - open-webui-data:/app/backend/data
-    depends_on:
-      rag:
-        condition: service_healthy
-    restart: unless-stopped
-
-  # ---------------------------------------------------------------
-  # Nginx — reverse proxy (single public entry point on port 80)
-  # ---------------------------------------------------------------
-  nginx:
-    image: nginx:alpine
-    container_name: ai4sids-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
-      - api
-      - rag
-      - open-webui
-    restart: unless-stopped
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   container_name: ai4sids-webui
+  #   environment:
+  #     - OPENAI_API_BASE_URL=http://rag:8000/v1
+  #     - OPENAI_API_KEY=not-needed
+  #     - WEBUI_NAME=AI4SIDS Climate Assistant
+  #     - DEFAULT_MODELS=ai4sids-climate-assistant
+  #   volumes:
+  #     - open-webui-data:/app/backend/data
+  #   depends_on:
+  #     rag:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # ---------------------------------------------------------------
   # Ollama — local LLM provider (optional)
@@ -145,4 +133,5 @@ volumes:
 
 networks:
   default:
-    name: ai4sids-network
+    name: ai4sids_net
+    external: true
