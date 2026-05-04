@@ -5,6 +5,9 @@ from contextlib import asynccontextmanager
 import asyncio
 from datetime import datetime
 from app.core.db import init_db
+
+from app.core.db import init_db, SessionLocal
+from app.core.auth import router as auth_router, seed_default_user
 from app.data_simulator import generate_realtime_data
 from app.features.location.controller import router as location_router
 from app.features.analytics.controller import router as analytics_router
@@ -21,6 +24,12 @@ async def lifespan(app: FastAPI):
     try:
         init_db()
         print("✅ Database connection established")
+        # Seed default user if not present
+        db = SessionLocal()
+        try:
+            seed_default_user(db)
+        finally:
+            db.close()
     except Exception as e:
         print(f"⚠️  Database initialization warning: {e}")
         print("   API will continue, but database operations may fail")
@@ -70,6 +79,7 @@ def create_app() -> FastAPI:
     )
 
 # Include routers
+    app.include_router(auth_router)
     app.include_router(location_router)
     app.include_router(analytics_router)
 

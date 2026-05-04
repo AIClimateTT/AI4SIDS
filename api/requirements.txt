@@ -10,3 +10,6 @@ pytz>=2025.1
 pandas
 alembic
 numpy
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
