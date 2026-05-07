@@ -88,12 +88,25 @@ Please analyze this data and provide your assessment.
             else:
                 content = str(response)
             
+            usage = getattr(response, 'response_metadata', {}).get('token_usage', {})
+            
+            if not usage:
+                usage = {
+                    "prompt_tokens": response.response_metadata.get("prompt_tokens", 0),
+                    "completion_tokens": response.response_metadata.get("completion_tokens", 0),
+                    "total_tokens": response.response_metadata.get("total_tokens", 0)
+                }
+
             print(f"\n📝 Agent Analysis:")
             print(content)
             
             state["messages"].append(AIMessage(content=content))
             state["next_agent"] = "prediction_accuracy"
-            
+            state["usage_history"] = state.get("usage_history", [])
+            state["usage_history"].append({
+                "agent": self.name,
+                "usage": usage
+            })
         except Exception as e:
             print(f"❌ Error in {self.name}: {str(e)}")
             error_response = f"Data validation encountered an error: {str(e)}"
