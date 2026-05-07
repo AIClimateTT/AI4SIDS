@@ -9,7 +9,7 @@ export interface ChatMessage {
 }
 
 const STORAGE_KEY = 'ai4sids-chat-history';
-
+const USER_ID_KEY = 'ai4sids-user-id';
 /**
  * Main chat service — speaks OpenAI /v1/chat/completions format
  */
@@ -25,11 +25,13 @@ class ChatService {
             ...history.map(m => ({ role: m.role, content: m.content })),
             { role: 'user' as const, content: userMessage },
         ];
-
+        const userId = this.getUserId();
+        
         const response = await fetch(`${apiBase}/v1/chat/completions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                user_id: userId,
                 model: 'ai4sids-climate-assistant',
                 messages,
             }),
@@ -47,6 +49,15 @@ class ChatService {
         }
 
         return reply;
+    }
+
+    getUserId(): string {
+        let userId = localStorage.getItem(USER_ID_KEY);
+        if (!userId) {
+            userId = crypto.randomUUID();
+            localStorage.setItem(USER_ID_KEY, userId);
+        }
+        return userId;
     }
 
     /**
