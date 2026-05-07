@@ -53,3 +53,5 @@ Thumbs.db
 
 # Claude Code
 .claude/
+
+result_logs.json
