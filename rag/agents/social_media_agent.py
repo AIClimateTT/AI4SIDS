@@ -65,8 +65,8 @@ class SocialMediaAgent:
                 "data": data,
             }
 
-        response = self._analyze(query, context, history)
-        return {"response": response, "data": data}
+        response, usage = self._analyze(query, context, history)
+        return {"response": response, "data": data, "usage": usage}
 
     def _build_context(self, data: Dict[str, Any], location: Optional[str]) -> str:
         """Build a data context string from backend API responses."""
@@ -124,7 +124,10 @@ class SocialMediaAgent:
 
         try:
             response = self.llm.invoke(messages)
-            return response.content if hasattr(response, "content") else str(response)
+            
+            content = response.content if hasattr(response, "content") else str(response)
+            usage = getattr(response, "response_metadata", {}).get("token_usage", {})
+            return content, usage
         except Exception as e:
             print(f"[SocialMediaAgent] LLM error: {e}")
             if context:

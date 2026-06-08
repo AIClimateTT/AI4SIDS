@@ -77,8 +77,8 @@ class FloodRiskAgent:
                 "risk_level": None,
             }
 
-        response = self._analyze(query, context, history)
-        return {"response": response, "data": data, "risk_level": risk_level}
+        response, usage = self._analyze(query, context, history)
+        return {"response": response, "data": data, "risk_level": risk_level, "usage": usage}
 
     def _build_context(self, data: Dict[str, Any], location: Optional[str]) -> str:
         """Build a data context string from backend API responses."""
@@ -152,7 +152,9 @@ class FloodRiskAgent:
 
         try:
             response = self.llm.invoke(messages)
-            return response.content if hasattr(response, "content") else str(response)
+            content = response.content if hasattr(response, "content") else str(response)
+            usage = getattr(response, "response_metadata", {}).get("token_usage", {})
+            return content, usage
         except Exception as e:
             print(f"[FloodRiskAgent] LLM error: {e}")
             if context:

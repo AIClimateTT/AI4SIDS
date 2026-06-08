@@ -7,6 +7,7 @@ Each agent fetches its own data from the backend API and runs domain-specific an
 """
 import json
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -270,7 +271,7 @@ class ConversationalCoordinator:
     # ------------------------------------------------------------------
 
     def process_message(self, user_message: str,
-                        conversation_history: List[Dict[str, str]]) -> str:
+                        conversation_history: List[Dict[str, str]], user_id: str) -> str:
         """
         Process user message: classify intent + location in one LLM call,
         then delegate to the appropriate specialist agent.
@@ -322,6 +323,20 @@ class ConversationalCoordinator:
                 # General / knowledge query
                 result = self.knowledge_agent.process(user_message, location, conversation_history)
 
+            # Begin Kwasi Code
+            # I need to be able to capture information about the request and response. for analytics (input/output tokens and whether RAG was used or not. For now I'm dumping the data into a file for future analysis. Real-world testing is being done right now by stakeholders)
+            try:
+                with open("./data/result_logs.json", "a", encoding="utf-8") as f:
+                    log_entry = {
+                        "user_id": user_id,
+                        "timestamp": datetime.now().isoformat(),
+                        "result": result
+                    }
+                    # default=str handles any non-serializable objects recursively
+                    f.write(json.dumps(log_entry, default=str) + "\n")
+            except Exception as e:
+                print(f"[Coordinator] Failed to log result: {e}")
+            # End Kwasi Code
             return result.get("response", "I'm sorry, I couldn't generate a response.")
 
         except Exception as e:

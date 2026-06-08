@@ -87,6 +87,7 @@ class Message(BaseModel):
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: List[Message]
+    user_id: str = "Public User (without uuid)"
     temperature: Optional[float] = 0.1
     max_tokens: Optional[int] = 2000
     stream: Optional[bool] = False
@@ -192,7 +193,8 @@ async def chat_completions(request: ChatCompletionRequest) -> ChatCompletionResp
         # Process message through coordinator
         response_content = coord.process_message(
             user_message=user_message,
-            conversation_history=conversation_history
+            conversation_history=conversation_history,
+            user_id=request.user_id
         )
 
         try:

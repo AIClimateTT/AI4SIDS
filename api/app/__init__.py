@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
+from datetime import datetime
+from app.core.db import init_db
 
 from app.core.db import init_db, SessionLocal
 from app.core.auth import router as auth_router, seed_default_user
@@ -129,3 +131,13 @@ async def stop_data_generation():
     from app.data_simulator import stop_background_generation
     result = await stop_background_generation()
     return result
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Docker health monitoring"""
+    return {
+        "status": "healthy",
+        "service": "AI4SIDS Real-Time API",
+        "version": "3.0.0",
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
