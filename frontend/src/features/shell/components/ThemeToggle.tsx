@@ -1,14 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { toggleTheme, initTheme, type Theme } from '@/features/shell/theme'
+import { getStoredTheme, toggleTheme, type Theme } from '@/features/shell/theme'
 
 export function ThemeToggle() {
-  const [theme, setThemeState] = useState<Theme>('light')
-
-  useEffect(() => {
-    setThemeState(initTheme())
-  }, [])
+  const [theme, setThemeState] = useState<Theme>(() => getStoredTheme())
 
   const handleToggle = () => {
     setThemeState(toggleTheme())

@@ -4,7 +4,11 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
+import { initTheme } from '@/features/shell/theme'
 import './styles.css'
+
+// Apply the stored theme before first paint to avoid a flash.
+initTheme()
 
 const queryClient = new QueryClient()
 

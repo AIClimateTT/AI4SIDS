@@ -64,6 +64,7 @@ export function AssistantPage() {
             {SUGGESTED_PROMPTS.map((p) => (
               <button
                 key={p}
+                type="button"
                 onClick={() => send(p)}
                 className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
               >

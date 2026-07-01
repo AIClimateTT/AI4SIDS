@@ -13,6 +13,7 @@ function LinkGrid({ items }: { items: ResourceLink[] }) {
       {items.map(({ id, label, hint, icon: Icon }) => (
         <button
           key={id}
+          type="button"
           className="flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-colors hover:bg-muted"
         >
           <Icon className="h-6 w-6 text-blue-600" />

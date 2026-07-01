@@ -45,7 +45,7 @@ export function MonitoringPage() {
                     </span>
                   </div>
                 ))}
-                <button className="pt-2 text-sm font-medium text-blue-600 hover:underline">
+                <button type="button" className="pt-2 text-sm font-medium text-blue-600 hover:underline">
                   View all stations →
                 </button>
               </CardContent>
