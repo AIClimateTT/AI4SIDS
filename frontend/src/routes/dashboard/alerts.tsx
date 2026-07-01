@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ComingSoonPage } from '@/features/placeholder/ComingSoonPage'
+import { AlertsPage } from '@/features/alerts/AlertsPage'
 
 export const Route = createFileRoute('/dashboard/alerts')({
-  component: () => <ComingSoonPage title="Alerts & Notifications" />,
+  component: AlertsPage,
 })

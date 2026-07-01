@@ -38,6 +38,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.476.0",
     "nitro": "latest",
+    "radix-ui": "^1.6.1",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.0.0",
