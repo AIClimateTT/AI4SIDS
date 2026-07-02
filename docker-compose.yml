@@ -8,12 +8,12 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-ai4sids}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ai4sids}
-      - POSTGRES_DB=${POSTGRES_DB:-ai4sids}
+      - POSTGRES_DB=${POSTGRES_DB:-ai4sids_gov}
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ai4sids} -d ${POSTGRES_DB:-ai4sids}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ai4sids} -d ${POSTGRES_DB:-ai4sids_gov}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,7 +31,7 @@ services:
       - DATA_CYCLE_INTERVAL=15 # seconds
       # Defaults to the postgres service; override DATABASE_URL to use
       # sqlite (e.g. sqlite:////app/db/ai4sids_demo.db) for local runs.
-      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-ai4sids}:${POSTGRES_PASSWORD:-ai4sids}@db:5432/${POSTGRES_DB:-ai4sids}}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-ai4sids}:${POSTGRES_PASSWORD:-ai4sids}@db:5432/${POSTGRES_DB:-ai4sids_gov}}
       # Auth — set real values in the Dokploy/staging environment.
       - SECRET_KEY=${SECRET_KEY:-changeme-please-set-a-real-secret-in-env}
       - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-admin@ai4sids.org}
