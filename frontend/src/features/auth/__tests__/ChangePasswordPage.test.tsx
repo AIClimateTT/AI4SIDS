@@ -23,12 +23,12 @@ describe('ChangePasswordForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /update password/i }))
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
-    const [url, init] = fetchMock.mock.calls[0]
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(String(url)).toContain('/auth/change-password')
-    expect((init as RequestInit).headers).toMatchObject({
+    expect(init.headers).toMatchObject({
       Authorization: 'Bearer tok-9',
     })
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+    expect(JSON.parse(init.body as string)).toEqual({
       current_password: 'temp1234',
       new_password: 'brand-new-pw-9',
     })
