@@ -90,6 +90,10 @@ def create_app() -> FastAPI:
     app.include_router(analytics_router)
     app.include_router(orgs_router)
 
+    @app.get("/api/health")
+    async def health_check():
+        return {"status": "ok"}
+
     return app
 
 app = create_app()
