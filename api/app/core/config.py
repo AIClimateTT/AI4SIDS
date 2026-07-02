@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "changeme-please-set-a-real-secret-in-env"
     DEFAULT_USER_EMAIL: str = "researcher@ai4sids.org"
     DEFAULT_USER_PASSWORD: str = "demo2024"
+    SUPERADMIN_EMAIL: str = "admin@ai4sids.org"
+    SUPERADMIN_PASSWORD: str = "change-me-now"
+    SEED_DEMO_ORGS: bool = False
 
     # Demo settings
     DATA_CYCLE_INTERVAL: int = 15

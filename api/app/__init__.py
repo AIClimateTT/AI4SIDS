@@ -26,6 +26,13 @@ async def lifespan(app: FastAPI):
         db = SessionLocal()
         try:
             seed_default_user(db)
+
+            from app.seed_auth import seed_demo_orgs, seed_super_admin
+            from app.core.config import settings as app_settings
+
+            seed_super_admin(db)
+            if app_settings.SEED_DEMO_ORGS:
+                seed_demo_orgs(db)
         finally:
             db.close()
     except Exception as e:
