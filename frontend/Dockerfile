@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM base AS build
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install ALL dependencies (including dev) for build
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
