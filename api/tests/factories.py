@@ -1,5 +1,13 @@
 from app.core.auth import hash_password
-from app.models import User
+from app.models import Organization, User
+
+
+def make_org(db, name="Ministry of Environment", active=True):
+    org = Organization(name=name, is_active=active)
+    db.add(org)
+    db.commit()
+    db.refresh(org)
+    return org
 
 
 def make_user(
