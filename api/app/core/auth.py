@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.db import SessionDep
+from app.models.organization import Organization
 from app.models.user import User
 from app.core.config import settings
 
@@ -48,6 +49,24 @@ class UserOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
+class OrgSummary(BaseModel):
+    id: int
+    name: str
+
+    model_config = {"from_attributes": True}
+
+class UserMe(BaseModel):
+    id: int
+    email: str
+    full_name: str | None
+    role: str
+    org: OrgSummary | None
+    must_change_password: bool
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -77,7 +96,11 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
 # Current-user dependency (use in protected routes)
 # ---------------------------------------------------------------------------
 
+PASSWORD_GATE_EXEMPT_PATHS = ("/auth/me", "/auth/change-password")
+
+
 async def get_current_user(
+    request: Request,
     token: Annotated[str, Depends(oauth2_scheme)],
     db: SessionDep,
 ) -> User:
@@ -97,6 +120,15 @@ async def get_current_user(
     user = get_user_by_email(db, email)
     if user is None or not user.is_active:
         raise credentials_exc
+
+    if (
+        user.must_change_password
+        and request.url.path not in PASSWORD_GATE_EXEMPT_PATHS
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="password_change_required",
+        )
     return user
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
@@ -117,16 +149,53 @@ async def login(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if user.org_id is not None:
+        org = db.get(Organization, user.org_id)
+        if org is not None and not org.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Organization is deactivated",
+            )
     token = create_access_token(
-        {"sub": user.email},
+        {"sub": user.email, "role": user.role, "org_id": user.org_id},
         timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     return Token(access_token=token, token_type="bearer")
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me", response_model=UserMe)
 async def get_me(current_user: CurrentUser):
-    return current_user
+    return UserMe(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        org=OrgSummary.model_validate(current_user.org) if current_user.org else None,
+        must_change_password=current_user.must_change_password,
+    )
+
+
+@router.post("/change-password")
+async def change_password(
+    body: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: SessionDep,
+):
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    if len(body.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters",
+        )
+    current_user.hashed_password = hash_password(body.new_password)
+    current_user.must_change_password = False
+    db.add(current_user)
+    db.commit()
+    return {"status": "password_changed"}
 
 
 # ---------------------------------------------------------------------------
