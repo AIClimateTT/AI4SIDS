@@ -1,5 +1,24 @@
 services:
   # ---------------------------------------------------------------
+  # Postgres — primary database (persistent volume)
+  # ---------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: ai4sids-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-ai4sids}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ai4sids}
+      - POSTGRES_DB=${POSTGRES_DB:-ai4sids}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ai4sids} -d ${POSTGRES_DB:-ai4sids}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------
   # Data Backend API — simulated sensor, river, social media data
   # ---------------------------------------------------------------
   api:
@@ -10,9 +29,19 @@ services:
     environment:
       - ENABLE_BACKGROUND_TASK=true
       - DATA_CYCLE_INTERVAL=15 # seconds
-      - DATABASE_URL=sqlite:////app/db/ai4sids_demo.db
+      # Defaults to the postgres service; override DATABASE_URL to use
+      # sqlite (e.g. sqlite:////app/db/ai4sids_demo.db) for local runs.
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-ai4sids}:${POSTGRES_PASSWORD:-ai4sids}@db:5432/${POSTGRES_DB:-ai4sids}}
+      # Auth — set real values in the Dokploy/staging environment.
+      - SECRET_KEY=${SECRET_KEY:-changeme-please-set-a-real-secret-in-env}
+      - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL:-admin@ai4sids.org}
+      - SUPERADMIN_PASSWORD=${SUPERADMIN_PASSWORD:-change-me-now}
+      - SEED_DEMO_ORGS=${SEED_DEMO_ORGS:-false}
     volumes:
       - api-db:/app/db
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/locations"]
@@ -157,6 +186,8 @@ services:
     restart: "no"
 
 volumes:
+  pgdata:
+    driver: local
   api-db:
     driver: local
   open-webui-data:
