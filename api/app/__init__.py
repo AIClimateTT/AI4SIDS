@@ -9,6 +9,7 @@ from app.core.auth import router as auth_router, seed_default_user
 from app.data_simulator import generate_realtime_data
 from app.features.location.controller import router as location_router
 from app.features.analytics.controller import router as analytics_router
+from app.features.orgs.controller import router as orgs_router
 from app.background_tasks import start_prediction_tasks, stop_prediction_tasks
 
 
@@ -87,6 +88,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(location_router)
     app.include_router(analytics_router)
+    app.include_router(orgs_router)
 
     return app
 
