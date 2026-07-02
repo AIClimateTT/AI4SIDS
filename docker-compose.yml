@@ -5,6 +5,8 @@ services:
   db:
     image: postgres:16-alpine
     container_name: ai4sids-db
+    networks:
+      - app-network
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-ai4sids}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ai4sids}
@@ -26,6 +28,8 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: ai4sids-api
+    networks:
+      - app-network
     environment:
       - ENABLE_BACKGROUND_TASK=true
       - DATA_CYCLE_INTERVAL=15 # seconds
@@ -57,6 +61,8 @@ services:
       context: ./rag
       dockerfile: Dockerfile
     container_name: ai4sids-rag
+    networks:
+      - app-network
     environment:
       # Backend URL inside Docker network
       - DATA_BACKEND_URL=http://api:8080
@@ -99,6 +105,8 @@ services:
         - VITE_CHAT_API_BASE_URL=http://${DOMAIN}/rag
         - VITE_BASE_URL=http://${DOMAIN}
     container_name: ai4sids-frontend
+    networks:
+      - app-network
     depends_on:
       api:
         condition: service_healthy
@@ -111,6 +119,8 @@ services:
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: ai4sids-webui
+    networks:
+      - app-network
     environment:
       - OPENAI_API_BASE_URL=http://rag:8000/v1
       - OPENAI_API_KEY=not-needed
@@ -129,6 +139,9 @@ services:
   nginx:
     image: nginx:alpine
     container_name: ai4sids-nginx
+    networks:
+      - app-network
+      - dokploy-network
     ports:
       - "80:80"
     volumes:
@@ -149,6 +162,8 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ai4sids-ollama
+    networks:
+      - app-network
     volumes:
       - ollama_data:/root/.ollama
     ports:
@@ -175,6 +190,8 @@ services:
   ollama-pull:
     image: ollama/ollama:latest
     container_name: ai4sids-ollama-pull
+    networks:
+      - app-network
     environment:
       - OLLAMA_HOST=http://ollama:11434
     entrypoint: ["/bin/sh", "-c", "ollama pull ${LLM_MODEL:-llama3.2}"]
