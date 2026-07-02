@@ -2,6 +2,12 @@
   "name": "./",
   "private": true,
   "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver"
+    ]
+  },
   "scripts": {
     "dev": "vite --port 3004",
     "build": "vite build",
