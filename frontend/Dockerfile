@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
 ARG NODE_VERSION=22.20.0
-ARG PNPM_VERSION=10.17.1
+# pnpm 9: matches our other deployed apps; pnpm 10 blocks dependency
+# build scripts (esbuild etc.) which breaks CI builds.
+ARG PNPM_VERSION=9.15.9
 
 ################################################################################
 FROM node:${NODE_VERSION}-alpine AS base
@@ -15,7 +17,7 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM base AS build
 
 # Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml ./
 
 # Install ALL dependencies (including dev) for build
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
