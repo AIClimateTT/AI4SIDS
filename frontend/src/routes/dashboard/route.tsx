@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { GovLayout } from '@/features/shell/components/GovLayout'
+import { RequirePasswordFresh } from '@/features/auth/RequirePasswordFresh'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: ({ location }) => {
@@ -7,5 +8,13 @@ export const Route = createFileRoute('/dashboard')({
       throw redirect({ to: '/login', search: { redirect: location.href } })
     }
   },
-  component: GovLayout,
+  component: DashboardShell,
 })
+
+function DashboardShell() {
+  return (
+    <RequirePasswordFresh>
+      <GovLayout />
+    </RequirePasswordFresh>
+  )
+}
