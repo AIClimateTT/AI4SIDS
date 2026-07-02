@@ -37,11 +37,14 @@ COPY . .
 # and is writable when Docker mounts the named volume at runtime.
 RUN mkdir -p /app/db && chown appuser /app/db
 
+# Ensure the entrypoint is executable regardless of host file modes.
+RUN chmod +x /app/entrypoint.sh
+
 # Switch to the non-privileged user to run the application.
 USER appuser
 
 # Expose the port that the application listens on.
 EXPOSE 8080
 
-# Run the application (Railway uses PORT environment variable)
-CMD uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}
+# Run migrations, then the application (PORT is honored by the entrypoint)
+CMD ["/app/entrypoint.sh"]
