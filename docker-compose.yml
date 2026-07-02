@@ -57,8 +57,6 @@ services:
       context: ./rag
       dockerfile: Dockerfile
     container_name: ai4sids-rag
-    env_file:
-      - ./rag/.env
     environment:
       # Backend URL inside Docker network
       - DATA_BACKEND_URL=http://api:8080
@@ -196,5 +194,6 @@ volumes:
     driver: local
 
 networks:
-  default:
-    name: ai4sids-network
+  app-network:
+  dokploy-network:
+    external: true
