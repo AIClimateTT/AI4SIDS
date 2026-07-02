@@ -40,25 +40,12 @@ ENV SKIP_ENV_VALIDATION=1
 RUN pnpm run build
 
 ################################################################################
-FROM base AS final
-
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3000
-
-# Copy the entire .output directory (includes server + public assets)
-COPY --from=build /usr/src/app/.output ./.output
-
-# TanStack Start with Nitro node-server needs node_modules at runtime
-COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY --from=build /usr/src/app/package.json ./package.json
-
-# Run as non-root user
-USER node
+FROM nginx:alpine AS final
 
 EXPOSE 3000
 
-CMD ["node", ".output/server/index.mjs"]
+RUN printf 'server {\n  listen 3000;\n  server_name _;\n  root /usr/share/nginx/html;\n  index index.html;\n\n  location / {\n    try_files $uri $uri/ /index.html;\n  }\n}\n' > /etc/nginx/conf.d/default.conf
+
+COPY --from=build /usr/src/app/dist /usr/share/nginx/html
+
+CMD ["nginx", "-g", "daemon off;"]
