@@ -19,6 +19,7 @@ import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settin
 import { Route as DashboardRiskRouteImport } from './routes/dashboard/risk'
 import { Route as DashboardResourcesRouteImport } from './routes/dashboard/resources'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard/reports'
+import { Route as DashboardOrgRouteImport } from './routes/dashboard/org'
 import { Route as DashboardMonitoringRouteImport } from './routes/dashboard/monitoring'
 import { Route as DashboardDataRouteImport } from './routes/dashboard/data'
 import { Route as DashboardAssistantRouteImport } from './routes/dashboard/assistant'
@@ -74,6 +75,11 @@ const DashboardReportsRoute = DashboardReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardOrgRoute = DashboardOrgRouteImport.update({
+  id: '/org',
+  path: '/org',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardMonitoringRoute = DashboardMonitoringRouteImport.update({
   id: '/monitoring',
   path: '/monitoring',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/assistant': typeof DashboardAssistantRoute
   '/dashboard/data': typeof DashboardDataRoute
   '/dashboard/monitoring': typeof DashboardMonitoringRoute
+  '/dashboard/org': typeof DashboardOrgRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/resources': typeof DashboardResourcesRoute
   '/dashboard/risk': typeof DashboardRiskRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/dashboard/assistant': typeof DashboardAssistantRoute
   '/dashboard/data': typeof DashboardDataRoute
   '/dashboard/monitoring': typeof DashboardMonitoringRoute
+  '/dashboard/org': typeof DashboardOrgRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/resources': typeof DashboardResourcesRoute
   '/dashboard/risk': typeof DashboardRiskRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/dashboard/assistant': typeof DashboardAssistantRoute
   '/dashboard/data': typeof DashboardDataRoute
   '/dashboard/monitoring': typeof DashboardMonitoringRoute
+  '/dashboard/org': typeof DashboardOrgRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/resources': typeof DashboardResourcesRoute
   '/dashboard/risk': typeof DashboardRiskRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistant'
     | '/dashboard/data'
     | '/dashboard/monitoring'
+    | '/dashboard/org'
     | '/dashboard/reports'
     | '/dashboard/resources'
     | '/dashboard/risk'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistant'
     | '/dashboard/data'
     | '/dashboard/monitoring'
+    | '/dashboard/org'
     | '/dashboard/reports'
     | '/dashboard/resources'
     | '/dashboard/risk'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/dashboard/assistant'
     | '/dashboard/data'
     | '/dashboard/monitoring'
+    | '/dashboard/org'
     | '/dashboard/reports'
     | '/dashboard/resources'
     | '/dashboard/risk'
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReportsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/org': {
+      id: '/dashboard/org'
+      path: '/org'
+      fullPath: '/dashboard/org'
+      preLoaderRoute: typeof DashboardOrgRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/monitoring': {
       id: '/dashboard/monitoring'
       path: '/monitoring'
@@ -309,6 +328,7 @@ interface DashboardRouteRouteChildren {
   DashboardAssistantRoute: typeof DashboardAssistantRoute
   DashboardDataRoute: typeof DashboardDataRoute
   DashboardMonitoringRoute: typeof DashboardMonitoringRoute
+  DashboardOrgRoute: typeof DashboardOrgRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardResourcesRoute: typeof DashboardResourcesRoute
   DashboardRiskRoute: typeof DashboardRiskRoute
@@ -321,6 +341,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAssistantRoute: DashboardAssistantRoute,
   DashboardDataRoute: DashboardDataRoute,
   DashboardMonitoringRoute: DashboardMonitoringRoute,
+  DashboardOrgRoute: DashboardOrgRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardResourcesRoute: DashboardResourcesRoute,
   DashboardRiskRoute: DashboardRiskRoute,

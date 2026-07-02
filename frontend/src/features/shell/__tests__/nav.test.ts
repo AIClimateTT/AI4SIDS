@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { NAV_ITEMS, getNavItemByPath } from '../nav'
 
 describe('nav config', () => {
-  it('has the nine nav items in order', () => {
+  it('has the ten nav items in order', () => {
     expect(NAV_ITEMS.map((n) => n.to)).toEqual([
       '/dashboard',
       '/dashboard/monitoring',
@@ -12,8 +12,14 @@ describe('nav config', () => {
       '/dashboard/resources',
       '/dashboard/reports',
       '/dashboard/data',
+      '/dashboard/org',
       '/dashboard/settings',
     ])
+  })
+
+  it('restricts the org item to admins', () => {
+    const org = NAV_ITEMS.find((n) => n.to === '/dashboard/org')
+    expect(org?.roles).toEqual(['org_admin', 'super_admin'])
   })
 
   it('puts a badge of 6 on alerts', () => {

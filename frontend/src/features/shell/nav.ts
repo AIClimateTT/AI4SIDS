@@ -6,6 +6,7 @@ import {
   Bot,
   BookOpen,
   BarChart3,
+  Building2,
   Database,
   Settings,
 } from 'lucide-react'
@@ -21,6 +22,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Resources & Guidance', to: '/dashboard/resources', icon: BookOpen },
   { label: 'Reports & Analytics', to: '/dashboard/reports', icon: BarChart3 },
   { label: 'Data Management', to: '/dashboard/data', icon: Database },
+  {
+    label: 'Organization',
+    to: '/dashboard/org',
+    icon: Building2,
+    roles: ['org_admin', 'super_admin'],
+  },
   { label: 'Settings', to: '/dashboard/settings', icon: Settings },
 ]
 

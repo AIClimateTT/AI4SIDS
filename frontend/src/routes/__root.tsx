@@ -5,6 +5,8 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanstackDevtools } from '@tanstack/react-devtools'
 
+import { Toaster } from 'sonner'
+
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { AuthProvider } from '@/lib/auth/AuthContext'
 import { BannerNewFeature } from '@/components/announcement-banner'
@@ -25,6 +27,7 @@ function RootDocument() {
     <AuthProvider>
       <BannerNewFeature />
       <Outlet />
+      <Toaster richColors />
       <TanstackDevtools
         config={{
           position: 'bottom-right',
