@@ -7,6 +7,7 @@ ARG PNPM_VERSION=9.15.9
 
 ################################################################################
 FROM node:${NODE_VERSION}-alpine AS base
+ARG PNPM_VERSION
 
 WORKDIR /usr/src/app
 
