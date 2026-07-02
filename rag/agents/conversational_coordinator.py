@@ -330,6 +330,9 @@ class ConversationalCoordinator:
                     log_entry = {
                         "user_id": user_id,
                         "timestamp": datetime.now().isoformat(),
+                        "intent": intent,
+                        "location": location,
+                        "user_message": user_message,
                         "result": result
                     }
                     # default=str handles any non-serializable objects recursively
