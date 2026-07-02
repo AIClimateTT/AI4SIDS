@@ -1,10 +1,13 @@
 import { Link } from '@tanstack/react-router'
 import { Waves } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { NAV_ITEMS } from '@/features/shell/nav'
+import { NAV_ITEMS, filterNavByRole } from '@/features/shell/nav'
 import { ThemeToggle } from '@/features/shell/components/ThemeToggle'
+import { useAuth } from '@/lib/auth/AuthContext'
 
 export function GovSidebar() {
+  const { user } = useAuth()
+  const items = filterNavByRole(NAV_ITEMS, user?.role ?? null)
   return (
     <aside className="flex h-full w-64 flex-col bg-slate-900 text-slate-100">
       {/* Brand */}
@@ -22,7 +25,7 @@ export function GovSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-        {NAV_ITEMS.map(({ label, to, icon: Icon, badge }) => (
+        {items.map(({ label, to, icon: Icon, badge }) => (
           <Link
             key={to}
             to={to}

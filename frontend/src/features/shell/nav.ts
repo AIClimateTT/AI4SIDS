@@ -10,6 +10,7 @@ import {
   Settings,
 } from 'lucide-react'
 import type { NavItem } from '@/features/shell/types'
+import type { Role } from '@/lib/auth/types'
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
@@ -27,4 +28,12 @@ export function getNavItemByPath(pathname: string): NavItem | undefined {
   // Strip trailing slash (except root) for stable exact matching.
   const path = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname
   return NAV_ITEMS.find((item) => item.to === path)
+}
+
+export function filterNavByRole(items: NavItem[], role: Role | null): NavItem[] {
+  return items.filter((item) => {
+    if (!item.roles) return true
+    if (!role) return false
+    return role === 'super_admin' || item.roles.includes(role)
+  })
 }

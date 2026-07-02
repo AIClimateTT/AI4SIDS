@@ -8,14 +8,15 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 import { GovSidebar } from '../components/GovSidebar'
+import { AuthProvider } from '@/lib/auth/AuthContext'
 
 function renderInRouter() {
   const rootRoute = createRootRoute({
     component: () => (
-      <>
+      <AuthProvider>
         <GovSidebar />
         <Outlet />
-      </>
+      </AuthProvider>
     ),
   })
   const router = createRouter({
