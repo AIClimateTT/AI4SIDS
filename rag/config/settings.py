@@ -107,9 +107,9 @@ class Settings(BaseSettings):
                 temperature=self.LLM_TEMPERATURE,
             )
         else:
-            from langchain_community.llms import Ollama
+            from langchain_ollama import ChatOllama
             print(f"Using Ollama with model: {self.LLM_MODEL}")
-            return Ollama(
+            return ChatOllama(
                 model=self.LLM_MODEL,
                 base_url=self.OLLAMA_BASE_URL,
                 temperature=self.LLM_TEMPERATURE,

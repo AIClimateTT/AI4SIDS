@@ -33,18 +33,14 @@ services:
     environment:
       # Backend URL inside Docker network
       - DATA_BACKEND_URL=http://api:8080
-      # Uncomment ONE of these LLM options:
+      # Local Ollama (model is pulled automatically by the ollama-pull service).
+      # Override the model by setting LLM_MODEL in the root .env / Dokploy env.
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - LLM_MODEL=${LLM_MODEL:-llama3.2}
       #
-      # Option A: Local Ollama (also uncomment the ollama service below)
-      # - OLLAMA_BASE_URL=http://ollama:11434
-      # - LLM_MODEL=llama3.2
-      #
-      # Option B: External OpenAI-compatible endpoint (e.g. colleague's OpenWebUI)
+      # Alternative backends (set these to override Ollama — see rag/config/settings.py priority):
       # - OPENAI_API_BASE_URL=https://their-openwebui-url.com/api
       # - OPENAI_API_KEY=sk-their-key
-      # - LLM_MODEL=model-name
-      #
-      # Option C: NVIDIA NIM
       # - NVIDIA_API_KEY=nvapi-...
     volumes:
       - ./rag/data:/app/data
@@ -52,6 +48,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
@@ -116,32 +114,55 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------
-  # Ollama — local LLM provider (optional)
-  # Uncomment this if using local Ollama instead of an external LLM.
-  # Also uncomment the ollama env vars in the rag service above
-  # and add: depends_on: ollama: condition: service_healthy
+  # Ollama — local LLM provider
+  # The GPU reservation below requires the NVIDIA Container Toolkit
+  # (present on AWS GPU instances / Deep Learning AMIs). Comment out
+  # the deploy: block to run CPU-only on machines without a GPU.
   # ---------------------------------------------------------------
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   container_name: ai4sids-ollama
-  #   volumes:
-  #     - ollama_data:/root/.ollama
-  #   ports:
-  #     - "11434:11434"
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "ollama", "list"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai4sids-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------
+  # Ollama model pull — one-shot job that downloads the model into
+  # the shared ollama_data volume, then exits. The rag service waits
+  # for it, so the model is always present before the RAG starts.
+  # ---------------------------------------------------------------
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: ai4sids-ollama-pull
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-c", "ollama pull ${LLM_MODEL:-llama3.2}"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
 
 volumes:
   api-db:
     driver: local
   open-webui-data:
     driver: local
-#   ollama_data:
-#     driver: local
+  ollama_data:
+    driver: local
 
 networks:
   default:
