@@ -50,9 +50,9 @@ async def lifespan(app: FastAPI):
     print("AI4SIDS API Server Starting...")
     print("="*60)
     print(f"Data Backend URL: {settings.DATA_BACKEND_URL}")
-    coord = get_coordinator()
     # Verify backend connectivity
-    if coord.backend.is_healthy():
+    backend_client = BackendClient(settings.DATA_BACKEND_URL)
+    if backend_client.is_healthy():
         print("Data backend: CONNECTED")
     else:
         print("WARNING: Data backend is not reachable. Agents will degrade gracefully.")

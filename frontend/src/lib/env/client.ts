@@ -4,8 +4,8 @@ import * as z from "zod";
 export const env = createEnv({
   clientPrefix: "VITE_",
   client: {
-    VITE_BASE_URL: z.string().url().default("http://localhost:3000"),
-    VITE_API_URL: z.string().url().default("http://localhost:8000"),
+    VITE_BASE_URL: z.string().default(""),
+    VITE_API_URL: z.string().default(""),
 
     // API Polling Intervals (in seconds)
     VITE_REFETCH_INTERVAL: z.coerce.number().default(15),
@@ -23,7 +23,7 @@ export const env = createEnv({
     VITE_RETRY_DELAY_BASE: z.coerce.number().default(5),
 
     // Chat API
-    VITE_CHAT_API_BASE_URL: z.string().url().default("http://localhost:8000"),
+    VITE_CHAT_API_BASE_URL: z.string().default("/rag"),
   },
   // Vite exposes variables via import.meta.env
   runtimeEnv: import.meta.env,

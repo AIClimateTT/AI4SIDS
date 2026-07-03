@@ -32,8 +32,10 @@ COPY . .
 # Override these as build args in docker-compose.
 ARG VITE_API_URL=http://localhost:8080
 ARG VITE_CHAT_API_BASE_URL=http://localhost:8000
+ARG VITE_BASE_URL=http://localhost:3000
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_CHAT_API_BASE_URL=$VITE_CHAT_API_BASE_URL
+ENV VITE_BASE_URL=$VITE_BASE_URL
 
 # Build with env validation skipped
 ENV SKIP_ENV_VALIDATION=1

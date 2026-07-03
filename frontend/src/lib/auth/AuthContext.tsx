@@ -8,7 +8,7 @@ import {
 } from 'react'
 import type { AuthUser, Role } from './types'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 const TOKEN_KEY = 'ai4sids_token'
 
 interface AuthContextValue {

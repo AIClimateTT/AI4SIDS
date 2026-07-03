@@ -86,9 +86,11 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
       interval: 30s
       timeout: 10s
+      start_period: 30s
       retries: 3
 
   # ---------------------------------------------------------------
@@ -99,12 +101,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # These are baked into the browser bundle at build time.
-        # Set DOMAIN in the root .env file before running docker compose up --build.
-        # DOMAIN must be the public hostname/IP the user's browser uses to reach this server.
-        - VITE_API_URL=http://${DOMAIN}/api
-        - VITE_CHAT_API_BASE_URL=http://${DOMAIN}/rag
-        - VITE_BASE_URL=http://${DOMAIN}
+        # Route browser calls through the same origin; nginx proxies these paths.
+        - VITE_API_URL=
+        - VITE_CHAT_API_BASE_URL=/rag
+        - VITE_BASE_URL=
     container_name: ai4sids-frontend
     networks:
       - app-network
@@ -114,28 +114,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------
-  # Open WebUI — chat interface for the RAG (optional)
-  # Uncomment this if you want a chat UI for the RAG service.
-  # ---------------------------------------------------------------
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: ai4sids-webui
-    networks:
-      - app-network
-    environment:
-      - OPENAI_API_BASE_URL=http://rag:8000/v1
-      - OPENAI_API_KEY=not-needed
-      - WEBUI_NAME=AI4SIDS Climate Assistant
-      - DEFAULT_MODELS=ai4sids-climate-assistant
-    volumes:
-      - open-webui-data:/app/backend/data
-    depends_on:
-      rag:
-        condition: service_healthy
-    restart: unless-stopped
-
-  # ---------------------------------------------------------------
-  # Nginx — reverse proxy (single public entry point on port 80)
+  # Nginx — internal reverse proxy (Dokploy owns the public host ports)
   # ---------------------------------------------------------------
   nginx:
     image: nginx:alpine
@@ -143,15 +122,11 @@ services:
     networks:
       - app-network
       - dokploy-network
-    ports:
-      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - frontend
       - api
-      - rag
-      - open-webui
     restart: unless-stopped
 
   # ---------------------------------------------------------------
@@ -167,8 +142,6 @@ services:
       - app-network
     volumes:
       - ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
     restart: unless-stopped
     deploy:
       resources:
@@ -205,8 +178,6 @@ volumes:
   pgdata:
     driver: local
   api-db:
-    driver: local
-  open-webui-data:
     driver: local
   ollama_data:
     driver: local
