@@ -15,6 +15,9 @@ const Header = () => {
   return (
     <>
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
+      <div className="bg-amber-500 text-amber-950 text-center py-2 px-4 text-xs font-medium relative z-50">
+        This is a beta version (AI4SIDS v1.0 for testing purposes only. For more information please contact <a href="mailto:aiclimatett@gmail.com" className="underline hover:text-black transition-colors">aiclimatett@gmail.com</a>)
+      </div>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           {/* Logo */}
